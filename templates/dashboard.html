@@ -1,0 +1,285 @@
+{% extends 'base.html' %}
+
+{% block title %}
+  用户仪表盘
+{% endblock %}
+
+{% block styles %}
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}" />
+{% endblock %}
+
+{% block content %}
+  <div class="dashboard-container">
+    <!-- 侧边栏 -->
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-header">
+        <div class="logo">D</div>
+        <h2>功能导航</h2>
+        <button class="sidebar-toggle" id="sidebarToggle"><i class="fas fa-bars"></i></button>
+      </div>
+
+      <nav class="sidebar-nav">
+        <ul>
+          <li>
+            <a href="#" class="nav-item">
+              <i class="fas fa-home"></i>
+              <span>仪表盘首页</span>
+            </a>
+          </li>
+          <li>
+            <a href="#" class="nav-item">
+              <i class="fas fa-cloud"></i>
+              <span>个人网盘</span>
+            </a>
+          </li>
+          <li>
+            <a href="#" class="nav-item">
+              <i class="fas fa-comments"></i>
+              <span>在线聊天</span>
+            </a>
+          </li>
+          <li>
+            <a href="#" class="nav-item">
+              <i class="fas fa-video"></i>
+              <span>视频解析</span>
+            </a>
+          </li>
+          <li>
+            <a href="#" class="nav-item">
+              <i class="fas fa-gamepad"></i>
+              <span>小游戏合集</span>
+            </a>
+          </li>
+          <li>
+            <a href="#" class="nav-item">
+              <i class="fas fa-file-contract"></i>
+              <span>文件格式转换</span>
+            </a>
+          </li>
+          <li>
+            <a href="#" class="nav-item">
+              <i class="fas fa-cog"></i>
+              <span>系统设置</span>
+            </a>
+          </li>
+        </ul>
+      </nav>
+
+      <div class="sidebar-footer">
+        <p>当前版本: {{ version }}</p>
+        <p>开发者: {{ developer }}</p>
+        <p>联系QQ: <a href="https://wpa.qq.com/msgrd?v=3&uin=393994653&site=qq&menu=yes">393994653</a></p>
+        <p>© 2025 开发者仪表盘</p>
+      </div>
+    </aside>
+
+    <!-- 主内容区 -->
+    <main class="main-content" id="mainContent">
+      <!-- 顶部导航栏 -->
+      <header class="top-navbar">
+        <div class="left-section">
+          <button class="menu-toggle" id="menuToggle"><i class="fas fa-bars"></i></button>
+          <h1>仪表盘</h1>
+        </div>
+
+        <div class="right-section">
+          <div class="user-dropdown" id="userDropdown">
+            <div class="user-info" id="userInfo">
+              <div class="user-avatar-text">{{ user_info.username|first|upper }}</div>
+              <span>{{ user_info.username }}</span>
+              <i class="fas fa-chevron-down"></i>
+            </div>
+
+            <div class="dropdown-menu" id="dropdownMenu">
+              <div class="dropdown-header">
+                <div class="dropdown-avatar-text">{{ user_info.username|first|upper }}</div>
+                <div>
+                  <h3>{{ user_info.username }}</h3>
+                  <p>{{ user_info.email }}</p>
+                </div>
+              </div>
+
+              <div class="dropdown-divider"></div>
+
+              <a href="#" class="dropdown-item">
+                <i class="fas fa-user"></i>
+                <span>个人资料</span>
+              </a>
+
+              <a href="#" class="dropdown-item">
+                <i class="fas fa-cog"></i>
+                <span>账户设置</span>
+              </a>
+
+              <a href="#" class="dropdown-item">
+                <i class="fas fa-shield-alt"></i>
+                <span>安全设置</span>
+              </a>
+
+              <div class="dropdown-divider"></div>
+
+              <a href="/logout" class="dropdown-item logout">
+                <i class="fas fa-sign-out-alt"></i>
+                <span>退出登录</span>
+              </a>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <!-- 仪表盘内容 -->
+      <div class="dashboard-content">
+        <div class="welcome-card">
+          <div class="welcome-text">
+            <h2>欢迎回来, {{ user_info.username }}!</h2>
+            <p>今天是 {{ current_date }}</p>
+            <div class="quick-stats">
+              <div class="stat-item">
+                <div class="stat-icon">📁</div>
+                <div>
+                  <p>文件数量</p>
+                  <strong>{{ file_number }}</strong>
+                </div>
+              </div>
+              <div class="stat-item">
+                <div class="stat-icon">💬</div>
+                <div>
+                  <p>未读消息</p>
+                  <strong>{{ unread_number }}</strong>
+                </div>
+              </div>
+              <div class="stat-item">
+                <div class="stat-icon">🎮</div>
+                <div>
+                  <p>游戏记录</p>
+                  <strong>{{ game_record_number }}</strong>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="welcome-image">
+            <img src="https://img.freepik.com/free-vector/dashboard-analytics-concept-illustration_114360-745.jpg" alt="欢迎图片" />
+          </div>
+        </div>
+
+        <!-- 功能卡片 -->
+        <div class="dashboard-grid">
+          <div class="dashboard-card">
+            <div class="card-icon bg-blue-100">
+              <div class="text-icon">P</div>
+            </div>
+            <h3>个人网盘</h3>
+            <p>存储和管理您的所有文件</p>
+            <a href="#" class="card-link">访问网盘</a>
+          </div>
+
+          <div class="dashboard-card">
+            <div class="card-icon bg-green-100">
+              <div class="text-icon">C</div>
+            </div>
+            <h3>在线聊天</h3>
+            <p>与朋友和同事实时交流</p>
+            <a href="#" class="card-link">开始聊天</a>
+          </div>
+
+          <div class="dashboard-card">
+            <div class="card-icon bg-purple-100">
+              <div class="text-icon">V</div>
+            </div>
+            <h3>视频解析</h3>
+            <p>解析和下载在线视频</p>
+            <a href="#" class="card-link">使用工具</a>
+          </div>
+
+          <div class="dashboard-card">
+            <div class="card-icon bg-yellow-100">
+              <div class="text-icon">G</div>
+            </div>
+            <h3>小游戏合集</h3>
+            <p>放松一下，玩点小游戏</p>
+            <a href="#" class="card-link">开始游戏</a>
+          </div>
+
+          <div class="dashboard-card">
+            <div class="card-icon bg-red-100">
+              <div class="text-icon">T</div>
+            </div>
+            <h3>文件转换</h3>
+            <p>转换不同格式的文件</p>
+            <a href="#" class="card-link">转换文件</a>
+          </div>
+
+          <div class="dashboard-card">
+            <div class="card-icon bg-indigo-100">
+              <div class="text-icon">S</div>
+            </div>
+            <h3>使用统计</h3>
+            <p>查看您的使用情况数据</p>
+            <a href="#" class="card-link">查看统计</a>
+          </div>
+        </div>
+
+        <!-- 活动记录 -->
+        <div class="activity-section">
+          <div class="section-header">
+            <h2>最近活动</h2>
+            <a href="#">查看全部</a>
+          </div>
+
+          <div class="activity-list">
+            <div class="activity-item">
+              <div class="activity-icon">
+                <div class="text-icon-sm">📁</div>
+              </div>
+              <div class="activity-content">
+                <p>
+                  您上传了 <strong>项目计划书.pdf</strong> 到网盘
+                </p>
+                <span>2小时前</span>
+              </div>
+            </div>
+
+            <div class="activity-item">
+              <div class="activity-icon">
+                <div class="text-icon-sm">💬</div>
+              </div>
+              <div class="activity-content">
+                <p>
+                  您在聊天室发送了消息给 <strong>张三</strong>
+                </p>
+                <span>5小时前</span>
+              </div>
+            </div>
+
+            <div class="activity-item">
+              <div class="activity-icon">
+                <div class="text-icon-sm">🎬</div>
+              </div>
+              <div class="activity-content">
+                <p>
+                  您解析了视频 <strong>如何学习Python</strong>
+                </p>
+                <span>昨天</span>
+              </div>
+            </div>
+
+            <div class="activity-item">
+              <div class="activity-icon">
+                <div class="text-icon-sm">🎮</div>
+              </div>
+              <div class="activity-content">
+                <p>
+                  您玩了 <strong>俄罗斯方块</strong> 最高分: 12500
+                </p>
+                <span>2天前</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- JavaScript文件 -->
+  <script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
+{% endblock %}

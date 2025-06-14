@@ -3,10 +3,10 @@ import os, json
 from datetime import datetime
 
 from config.config import Config
+from config.const import *
 
 app = Flask(__name__)
 app.secret_key = Config.SECRET_KEY  # Set a secret key for session management
-
 
 users = {
     "admin": {
@@ -23,7 +23,7 @@ users = {
 def index():
     # Redirect to the login page
     if "logged_in" in session and session["logged_in"]:
-        return redirect(url_for('index_page'))
+        return redirect(url_for("dashboard"))
     return redirect(url_for('login'))
 
 @app.route('/login', methods=['GET', 'POST'])
@@ -47,10 +47,10 @@ def login():
             # 重定向到仪表盘或主页
             # return redirect(url_for("dashboard"))
             res = {
-                "status": "success", 
+                "status": "success",
                 "success": True,
-                "message": "登录成功", 
-                "redirectUrl": "/index.html"
+                "message": "登录成功",
+                "redirectUrl": "/dashboard",
             }
             return res
         else:
@@ -65,11 +65,11 @@ def login():
 
     # 如果是GET请求，显示登录页面
     if "logged_in" in session and session["logged_in"]:
-        return redirect(url_for('index_page'))
+        return redirect(url_for("dashboard"))
     return render_template("login.html")
 
-@app.route('/index.html', methods=['GET'])
-def index_page():
+@app.route('/dashboard', methods=['GET'])
+def dashboard():
     if "logged_in" not in session or not session["logged_in"]:
         return redirect(url_for('login'))
     user_info = {
@@ -77,7 +77,17 @@ def index_page():
         "login_time": session.get("login_time"),
         "email": users[session["user"]]["email"]
     }
-    return render_template("index.html", user_info=user_info)
+    return render_template(
+        "dashboard.html",
+        user_info=user_info,
+        file_number = session.get("file_number", 0),
+        unread_number = session.get("unread_number", 0),
+        game_record_number = session.get("game_record_number", 0),
+        version=Const.VERSION,
+        developer=Const.AUTHOR,
+        recent_activity=session.get("recent_activity", []),
+        # current_date=(datetime.now().strftime("%Y-%m-%d ") + Const.week[datetime.now().weekday()]),
+    )
 
 @app.route('/logout', methods=['GET'])
 def logout():

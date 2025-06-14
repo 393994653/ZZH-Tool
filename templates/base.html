@@ -5,11 +5,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>
       {% block title %}
+
       {% endblock %}
     </title>
+    <!-- 引入Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
     {% block styles %}
+
     {% endblock %}
-    <!-- 在HTML的<head>标签中添加Tailwind配置 -->
     <script>
       tailwind.config = {
         theme: {
@@ -18,7 +21,10 @@
               success: '#10B981', // 成功消息颜色
               info: '#3B82F6', // 信息消息颜色
               warning: '#F59E0B', // 警告消息颜色
-              danger: '#EF4444' // 错误消息颜色
+              danger: '#EF4444', // 错误消息颜色
+              primary: '#4a6fa5', // 主色调
+              primaryDark: '#3a5a8a', // 深主色调
+              secondary: '#6b8cbc' // 辅助色调
             },
             fontFamily: {
               sans: ['Inter', 'sans-serif'], // 使用Inter字体
@@ -40,12 +46,39 @@
         .flash-exit {
           @apply translate-y-[-20px] opacity-0;
         }
+      
+        /* 自定义按钮 */
+        .btn-primary {
+          @apply bg-primary text-white font-medium py-3 px-6 rounded-lg shadow-md hover:bg-primaryDark transition-all duration-300;
+        }
+      
+        .btn-secondary {
+          @apply bg-white text-primary border-2 border-primary font-medium py-3 px-6 rounded-lg shadow-md hover:bg-gray-50 transition-all duration-300;
+        }
+      
+        /* 卡片样式 */
+        .feature-card {
+          @apply bg-white rounded-xl shadow-lg p-6 hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1;
+        }
+      
+        /* 导航链接 */
+        .nav-link {
+          @apply text-gray-700 hover:text-primary transition-colors duration-300 font-medium;
+        }
+      
+        /* 英雄区域 */
+        .hero-gradient {
+          background: linear-gradient(135deg, #1e3c72, #2a5298);
+        }
       }
     </style>
   </head>
-  <body>
+  <body class="font-sans bg-gray-50">
     {% block content %}
 
     {% endblock %}
+
+    <!-- 引入图标库 -->
+    <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
   </body>
 </html>
