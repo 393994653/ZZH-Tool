@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>
+      {% block title %}
+      {% endblock %}
+    </title>
+    {% block styles %}
+    {% endblock %}
+    <!-- 在HTML的<head>标签中添加Tailwind配置 -->
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              success: '#10B981', // 成功消息颜色
+              info: '#3B82F6', // 信息消息颜色
+              warning: '#F59E0B', // 警告消息颜色
+              danger: '#EF4444' // 错误消息颜色
+            },
+            fontFamily: {
+              sans: ['Inter', 'sans-serif'], // 使用Inter字体
+              serif: ['Merriweather', 'serif'] // 使用Merriweather字体
+            }
+          }
+        }
+      }
+    </script>
+
+    <style type="text/tailwindcss">
+      @layer utilities {
+        .flash-message {
+          @apply fixed top-4 right-4 z-50 px-6 py-3 rounded-lg shadow-lg transition-all duration-300 transform translate-y-0 opacity-100;
+        }
+        .flash-enter {
+          @apply translate-y-[-20px] opacity-0;
+        }
+        .flash-exit {
+          @apply translate-y-[-20px] opacity-0;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    {% block content %}
+
+    {% endblock %}
+  </body>
+</html>
