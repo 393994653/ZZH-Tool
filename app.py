@@ -72,6 +72,7 @@ def login():
 def dashboard():
     if "logged_in" not in session or not session["logged_in"]:
         return redirect(url_for('login'))
+    
     user_info = {
         "username": session.get("user"),
         "login_time": session.get("login_time"),
