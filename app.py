@@ -87,7 +87,7 @@ def dashboard():
         version=Const.VERSION,
         developer=Const.AUTHOR,
         recent_activity=session.get("recent_activity", []),
-        # current_date=(datetime.now().strftime("%Y-%m-%d ") + Const.week[datetime.now().weekday()]),
+        current_date=(datetime.now().strftime("%Y-%m-%d ") + Const.week[datetime.now().weekday()]),
     )
 
 @app.route('/logout', methods=['GET'])
