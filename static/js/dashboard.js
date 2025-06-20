@@ -64,6 +64,36 @@ document.querySelectorAll('a').forEach(link => {
     });
 });
 
+document.addEventListener('DOMContentLoaded', function () {
+    // 为每个卡片添加点击事件
+    const cards = document.querySelectorAll('.dashboard-card');
+
+    cards.forEach(card => {
+        card.addEventListener('click', function (e) {
+            // 防止点击链接时触发两次跳转
+            if (e.target.closest('.card-link')) return;
+
+            // 获取卡片内的链接
+            const link = this.querySelector('.card-link');
+            if (link && link.href && link.href !== '#') {
+                window.location.href = link.href;
+            }
+        });
+
+        // 添加悬停效果
+        card.style.cursor = 'pointer';
+        card.style.transition = 'transform 0.2s';
+
+        card.addEventListener('mouseenter', () => {
+            card.style.transform = 'translateY(-5px)';
+        });
+
+        card.addEventListener('mouseleave', () => {
+            card.style.transform = 'none';
+        });
+    });
+});
+
 // 固定侧边栏高度
 function adjustSidebarHeight() {
     if (window.innerWidth > 992) {
