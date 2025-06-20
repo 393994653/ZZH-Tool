@@ -1,0 +1,311 @@
+{% extends 'base.html' %}
+
+{% block title %}
+  在线聊天
+{% endblock %}
+
+{% block styles %}
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/chat.css') }}" />
+{% endblock %}
+
+{% block content %}
+  <div class="chat-container">
+    <!-- 左侧联系人列表 -->
+    <div class="contacts-panel">
+      <div class="contacts-header">
+        <h2>聊天</h2>
+        <div class="search-box flex items-center">
+          <div class="relative flex-grow">
+            <input type="text" placeholder="搜索联系人..." id="searchContacts" class="w-full pl-10 pr-4 py-2 rounded-full border border-gray-300 focus:outline-none focus:border-blue-500" />
+            <i class="fas fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+          </div>
+          <button id="addFriendBtn" class="ml-2 bg-primary text-white p-2 rounded-full hover:bg-primaryDark transition-colors duration-300"><i class="fas fa-user-plus"></i></button>
+        </div>
+      </div>
+
+      <div class="contacts-list" id="contactsList">
+        {% if contacts|length == 0 %}
+          <div class="no-contacts text-gray-500 text-center py-8">
+            <i class="fas fa-user-friends text-4xl mb-2"></i>
+            <p>暂无好友</p>
+          </div>
+        {% else %}
+          {% for contact in contacts %}
+            <div class="contact {% if current_contact and contact.id == current_contact.id %}active{% endif %}" data-contact-id="{{ contact.id }}">
+              <div class="contact-avatar">{{ contact.name|first|upper }}</div>
+              <div class="contact-info">
+                <div class="contact-name">{{ contact.name }}</div>
+                <div class="last-message">
+                  {% if contact.last_message %}
+                    {{ contact.last_message.content|truncate(20) }}
+                  {% else %}
+                    暂无消息
+                  {% endif %}
+                </div>
+              </div>
+              <div class="message-info">
+                {% if contact.last_message %}
+                  <span class="message-time">{{ contact.last_message.timestamp|format_time }}</span>
+                {% endif %}
+                {% if contact.unread_count > 0 %}
+                  <span class="unread-count">{{ contact.unread_count }}</span>
+                {% endif %}
+              </div>
+            </div>
+          {% endfor %}
+        {% endif %}
+      </div>
+
+      <!-- 替换原有 contacts-footer 部分 -->
+      <div class="contacts-footer">
+        <div class="user-dropdown" id="userDropdown">
+          <div class="user-info" id="userInfo">
+            <div class="user-avatar">{{ current_user.username|first|upper }}</div>
+            <div class="user-details">
+              <div class="user-name">{{ current_user.username }}</div>
+              <div class="user-status">在线</div>
+            </div>
+          </div>
+
+          <div class="dropdown-menu" id="dropdownMenu">
+            <div class="dropdown-header">
+              <div class="dropdown-avatar">{{ current_user.username|first|upper }}</div>
+              <div>
+                <h3>{{ current_user.username }}</h3>
+                <p>{{ current_user.email }}</p>
+              </div>
+            </div>
+
+            <div class="dropdown-divider"></div>
+
+            <a href="#" class="dropdown-item">
+              <i class="fas fa-user"></i>
+              <span>个人资料</span>
+            </a>
+
+            <a href="#" class="dropdown-item">
+              <i class="fas fa-cog"></i>
+              <span>账户设置</span>
+            </a>
+
+            <a href="#" class="dropdown-item">
+              <i class="fas fa-shield-alt"></i>
+              <span>安全设置</span>
+            </a>
+
+            <div class="dropdown-divider"></div>
+
+            <a href="/logout" class="dropdown-item logout">
+              <i class="fas fa-sign-out-alt"></i>
+              <span>退出登录</span>
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 右侧聊天区域 -->
+    <div class="chat-panel">
+      {% if current_contact %}
+        <div class="chat-header">
+          <div class="chat-partner">
+            <div class="partner-avatar">{{ current_contact.name|first|upper }}</div>
+            <div class="partner-info">
+              <div class="partner-name" id="currentContactName">{{ current_contact.name }}</div>
+              <div class="partner-status" id="contactStatus">
+                {% if current_contact.online %}
+                  在线
+                {% else %}
+                  离线
+                {% endif %}
+              </div>
+            </div>
+          </div>
+          <div class="chat-actions">
+            <button class="action-btn"><i class="fas fa-phone"></i></button>
+            <button class="action-btn"><i class="fas fa-video"></i></button>
+            <button class="action-btn"><i class="fas fa-info-circle"></i></button>
+          </div>
+        </div>
+
+        <div class="chat-messages" id="chatMessages">
+          <!-- 聊天记录将由服务器动态生成 -->
+          {% for message in messages %}
+            <div class="message-row {% if message.sender_id == current_user.id %}
+                
+                sent
+
+              {% else %}
+                
+                received
+
+              {% endif %}">
+              {% if message.sender_id != current_user.id %}
+                <div class="message-avatar">{{ current_contact.name|first|upper }}</div>
+              {% endif %}
+              <div class="message-content">
+                
+                <div class="message-time">{{ message.timestamp|format_time }}</div>
+                <div class="message-text">
+                  {{ message.content }}
+                  {% if message.attachment %}
+                    <div class="message-attachment">
+                      <i class="fas fa-paperclip"></i>
+                      <a href="{{ url_for('download_attachment', file_id=message.attachment.id) }}">{{ message.attachment.filename }}</a>
+                    </div>
+                  {% endif %}
+                </div>
+              </div>
+              
+            </div>
+          {% endfor %}
+        </div>
+
+        <div class="chat-input">
+          <div class="input-actions">
+            <button class="action-btn" id="attachFileBtn"><i class="fas fa-paperclip"></i></button>
+            <input type="file" id="fileInput" style="display: none;" />
+          </div>
+          <div class="message-input">
+            <input type="text" placeholder="输入消息..." id="messageInput" />
+            <button class="send-btn" id="sendMessageBtn"><i class="fas fa-paper-plane"></i></button>
+          </div>
+        </div>
+      {% else %}
+        <div class="no-chat flex items-center justify-center h-full">
+          <div class="text-center">
+            <i class="fas fa-comments text-5xl text-gray-300 mb-4"></i>
+            <h3 class="text-xl font-medium text-gray-500">选择一个联系人开始聊天</h3>
+            <p class="text-gray-400 mt-2">或添加新好友</p>
+          </div>
+        </div>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- 添加好友弹窗 -->
+  <div id="addFriendModal" class="modal hidden fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+    <div class="modal-content bg-white rounded-lg shadow-xl w-96">
+      <div class="modal-header flex justify-between items-center p-4 border-b">
+        <h3 class="text-xl font-semibold">添加好友</h3>
+        <button id="closeModal" class="text-gray-500 hover:text-gray-700"><i class="fas fa-times"></i></button>
+      </div>
+      <div class="modal-body p-6">
+        <div class="mb-4">
+          <label class="block text-gray-700 text-sm font-bold mb-2" for="friendUsername">用户名</label>
+          <input id="friendUsername" type="text" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" placeholder="输入要添加的用户名" />
+        </div>
+        <div id="addFriendResult" class="text-red-500 text-sm mb-4 hidden"></div>
+      </div>
+      <div class="modal-footer bg-gray-50 px-6 py-4 border-t flex justify-end">
+        <button id="cancelAdd" class="btn-secondary mr-2">取消</button>
+        <button id="confirmAdd" class="btn-primary">发送请求</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 消息提示弹窗 -->
+  <div id="messageToast" class="toast hidden fixed bottom-4 right-4 bg-gray-800 text-white px-4 py-2 rounded shadow-lg">
+    <div class="flex items-center">
+      <span id="toastMessage"></span>
+    </div>
+  </div>
+
+  <!-- JavaScript文件 -->
+  <script src="{{ url_for('static', filename='js/chat.js') }}"></script>
+  <script>
+  // 初始化变量
+  const CURRENT_USER_ID = "{{ current_user.id }}";
+  const CURRENT_CONTACT_ID = "{{ current_contact.id if current_contact else '' }}";
+  
+  // 从Flask传递联系人状态
+  const CONTACT_STATUS = {
+    {% for contact in contacts %}
+    "{{ contact.id }}": {{ contact.online|tojson }},
+    {% endfor %}
+  };
+  
+  // 添加好友弹窗控制
+  const addFriendModal = document.getElementById('addFriendModal');
+  const closeModalBtn = document.getElementById('closeModal');
+  const cancelAddBtn = document.getElementById('cancelAdd');
+  const confirmAddBtn = document.getElementById('confirmAdd');
+  const friendUsernameInput = document.getElementById('friendUsername');
+  const addFriendResult = document.getElementById('addFriendResult');
+  const toast = document.getElementById('messageToast');
+  const toastMessage = document.getElementById('toastMessage');
+
+  // 打开添加好友弹窗
+  document.getElementById('addFriendBtn').addEventListener('click', function() {
+    addFriendModal.classList.remove('hidden');
+    addFriendResult.classList.add('hidden');
+    friendUsernameInput.value = '';
+  });
+
+  // 关闭弹窗
+  function closeModal() {
+    addFriendModal.classList.add('hidden');
+  }
+
+  closeModalBtn.addEventListener('click', closeModal);
+  cancelAddBtn.addEventListener('click', closeModal);
+
+  // 点击弹窗外部关闭
+  addFriendModal.addEventListener('click', function(e) {
+    if (e.target === addFriendModal) {
+      closeModal();
+    }
+  });
+
+  // 添加好友确认
+  confirmAddBtn.addEventListener('click', function() {
+    const username = friendUsernameInput.value.trim();
+    
+    if (!username) {
+      addFriendResult.textContent = '请输入用户名';
+      addFriendResult.classList.remove('hidden');
+      return;
+    }
+    
+    // 发送添加好友请求
+    fetch('/add_friend', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ username: username })
+    })
+    .then(response => response.json())
+    .then(data => {
+      if (data.success) {
+        // 显示成功提示
+        showToast('好友添加成功');
+        closeModal();
+        
+        // 刷新联系人列表
+        setTimeout(() => {
+          window.location.reload();
+        }, 1500);
+      } else {
+        addFriendResult.textContent = data.error || '添加失败';
+        addFriendResult.classList.remove('hidden');
+      }
+    })
+    .catch(error => {
+      addFriendResult.textContent = '请求失败，请重试';
+      addFriendResult.classList.remove('hidden');
+    });
+  });
+
+  // 显示提示消息
+  function showToast(message) {
+    toastMessage.textContent = message;
+    toast.classList.remove('hidden');
+    
+    // 3秒后自动隐藏
+    setTimeout(() => {
+      toast.classList.add('hidden');
+    }, 3000);
+  }
+</script>
+{% endblock %}

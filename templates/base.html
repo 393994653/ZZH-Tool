@@ -5,14 +5,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <title>
-      {% block title %}
-
-      {% endblock %}
+      ZZH-Tool - {% block title %}{% endblock %}
     </title>
     <!-- 引入Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <!-- 引入 Font Awesome 6 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     {% block styles %}
-
     {% endblock %}
     <script>
       tailwind.config = {
@@ -76,10 +75,12 @@
   </head>
   <body class="font-sans bg-gray-50">
     {% block content %}
-
     {% endblock %}
 
     <!-- 引入图标库 -->
     <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
+    
+    <!-- 引入 Socket.IO 客户端库 -->
+    <script src="https://cdn.socket.io/4.7.4/socket.io.min.js"></script>
   </body>
 </html>
