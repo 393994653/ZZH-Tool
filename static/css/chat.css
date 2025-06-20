@@ -701,3 +701,7 @@
 .dropdown-item.logout:hover {
     background-color: #fff5f5;
 }
+
+.user-info {
+    cursor: pointer;
+}
