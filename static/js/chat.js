@@ -101,13 +101,13 @@ document.addEventListener('DOMContentLoaded', function () {
 
         if (message && currentContactId) {
             // 在本地显示消息
-            displayMessage({
-                id: 'temp-' + Date.now(),
-                sender_id: CURRENT_USER_ID,
-                recipient_id: currentContactId,
-                content: message,
-                timestamp: new Date().toISOString()
-            });
+            // displayMessage({
+            //     id: 'temp-' + Date.now(),
+            //     sender_id: CURRENT_USER_ID,
+            //     recipient_id: currentContactId,
+            //     content: message,
+            //     timestamp: new Date().toISOString()
+            // });
 
             // 创建消息数据
             const now = new Date();
@@ -137,39 +137,65 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     }
 
-    // 显示消息
     function displayMessage(message) {
         if (!chatMessages) return;
 
-        // 检查消息是否属于当前聊天
-        if (message.sender_id !== currentContactId && message.recipient_id !== currentContactId) {
+        // 确保ID类型一致（数字转字符串）
+        const msgSenderId = String(message.sender_id);
+        const msgRecipientId = String(message.recipient_id);
+        const currentUserId = String(CURRENT_USER_ID);
+        const currentContactIdStr = String(currentContactId);
+
+        // 调试信息
+        console.log("收到消息:", {
+            msgSenderId,
+            msgRecipientId,
+            currentUserId,
+            currentContactId: currentContactIdStr,
+            content: message.content
+        });
+
+        // 正确判断消息是否属于当前聊天会话
+        const isCurrentSession =
+            (msgSenderId === currentUserId && msgRecipientId === currentContactIdStr) ||
+            (msgSenderId === currentContactIdStr && msgRecipientId === currentUserId);
+
+        if (!isCurrentSession) {
+            console.log("消息不属于当前会话，跳过显示");
             return;
         }
 
         // 创建消息元素
         const messageRow = document.createElement('div');
 
-        // 正确判断消息方向
-        const isSent = message.sender_id == CURRENT_USER_ID;
+        // 判断消息方向（自己发送还是接收）
+        const isSent = msgSenderId === currentUserId;
         messageRow.className = `message-row ${isSent ? 'sent' : 'received'}`;
         messageRow.dataset.messageId = message.id;
 
-        // 添加头像（接收的消息）
+        // 添加头像（仅接收的消息显示对方头像）
         if (!isSent) {
             const messageAvatar = document.createElement('div');
             messageAvatar.className = 'message-avatar';
-            messageAvatar.textContent = message.sender_username ? message.sender_username.charAt(0) : '?';
+
+            // 使用发送者名字首字母，如果后端提供了更好
+            const senderInitial = message.sender_username
+                ? message.sender_username.charAt(0).toUpperCase()
+                : (currentContactIdStr ? document.getElementById('currentContactName')?.textContent?.charAt(0) : '?');
+
+            messageAvatar.textContent = senderInitial || '?';
             messageRow.appendChild(messageAvatar);
         }
 
         const messageContent = document.createElement('div');
         messageContent.className = 'message-content';
 
+        // 消息内容区域
         const messageText = document.createElement('div');
         messageText.className = 'message-text';
         messageText.textContent = message.content;
 
-        // 如果有附件
+        // 处理附件（如果有）
         if (message.attachment) {
             const attachmentDiv = document.createElement('div');
             attachmentDiv.className = 'message-attachment';
@@ -179,7 +205,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
             const link = document.createElement('a');
             link.href = `/download_attachment/${message.attachment.id}`;
-            link.textContent = message.attachment.filename;
+            link.textContent = message.attachment.filename || "下载文件";
             link.target = '_blank';
 
             attachmentDiv.appendChild(icon);
@@ -190,15 +216,27 @@ document.addEventListener('DOMContentLoaded', function () {
         // 添加消息时间
         const messageTime = document.createElement('div');
         messageTime.className = 'message-time';
-        // 格式化为 "YYYY-MM-DD HH:mm"
-        const date = new Date(message.timestamp);
-        const year = date.getFullYear();
-        const month = (date.getMonth() + 1).toString().padStart(2, '0');
-        const day = date.getDate().toString().padStart(2, '0');
-        const hours = date.getHours().toString().padStart(2, '0');
-        const minutes = date.getMinutes().toString().padStart(2, '0');
-        messageTime.textContent = `${year}-${month}-${day} ${hours}:${minutes}`;
 
+        // 格式化时间戳
+        let displayTime = "刚刚";
+        if (message.timestamp) {
+            try {
+                const date = new Date(message.timestamp);
+                if (!isNaN(date.getTime())) {
+                    const year = date.getFullYear();
+                    const month = (date.getMonth() + 1).toString().padStart(2, '0');
+                    const day = date.getDate().toString().padStart(2, '0');
+                    const hours = date.getHours().toString().padStart(2, '0');
+                    const minutes = date.getMinutes().toString().padStart(2, '0');
+                    displayTime = `${year}-${month}-${day} ${hours}:${minutes}`;
+                }
+            } catch (e) {
+                console.error("时间格式化错误:", e);
+            }
+        }
+        messageTime.textContent = displayTime;
+
+        // 组装消息元素
         messageContent.appendChild(messageTime);
         messageContent.appendChild(messageText);
         messageRow.appendChild(messageContent);
@@ -208,6 +246,25 @@ document.addEventListener('DOMContentLoaded', function () {
 
         // 滚动到底部
         scrollToBottom();
+
+        // 标记为已读（仅接收的消息）
+        if (!isSent) {
+            markMessageAsRead(message);
+        }
+    }
+
+    // 新添加的辅助函数：标记消息为已读
+    function markMessageAsRead(message) {
+        if (!message.id || !window.socket) return;
+
+        try {
+            window.socket.emit('mark_as_read', {
+                contact_id: String(message.sender_id),
+                message_id: String(message.id)
+            });
+        } catch (e) {
+            console.error("标记已读失败:", e);
+        }
     }
 
     // 格式化时间
@@ -260,7 +317,9 @@ document.addEventListener('DOMContentLoaded', function () {
         if (!isSent) {
             const messageAvatar = document.createElement('div');
             messageAvatar.className = 'message-avatar';
-            messageAvatar.textContent = message.sender_username ? message.sender_username.charAt(0) : '?';
+            // 使用发送者的用户名首字母大写作为头像
+            messageAvatar.textContent = message.sender_username ? message.sender_username.charAt(0).toUpperCase() : '?';
+            // messageAvatar.textContent = message.sender_username ? message.sender_username.charAt(0) : '?';
             messageRow.appendChild(messageAvatar);
         }
 
@@ -371,10 +430,11 @@ document.addEventListener('DOMContentLoaded', function () {
 
             // 监听新消息
             socket.on('new_message', function (message) {
-                // 显示接收到的消息
-                displayMessage(message);
+                // 转换ID为字符串
+                message.sender_id = String(message.sender_id);
+                message.recipient_id = String(message.recipient_id);
 
-                // 更新联系人列表
+                displayMessage(message);
                 updateContactLastMessage(message);
             });
 

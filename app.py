@@ -148,13 +148,51 @@ with app.app_context():
             db.session.add(friendship)
             db.session.commit()
 
-### 主页、登录
+### 主页、登录、注册
 @app.route("/")
 def index():
     if "logged_in" in session and session["logged_in"]:
         return redirect(url_for("dashboard"))
     return redirect(url_for("login"))
 
+@app.route("/register", methods=["GET", "POST"])
+def register():
+    if request.method == "POST":
+        data = request.get_json()
+        username = data.get("username")
+        email = data.get("email")
+        password = data.get("password")
+
+        # 验证输入
+        if not username or not email or not password:
+            return jsonify({"success": False, "error": "所有字段均为必填项"}), 400
+
+        # 检查用户名是否已存在
+        existing_user = User.query.filter_by(username=username).first()
+        if existing_user:
+            return jsonify({"success": False, "error": "用户名已存在"}), 400
+
+        # 检查邮箱是否已存在
+        existing_email = User.query.filter_by(email=email).first()
+        if existing_email:
+            return jsonify({"success": False, "error": "邮箱已被使用"}), 400
+
+        # 创建新用户
+        new_user = User(username=username, email=email, password=password, online=False)
+
+        try:
+            db.session.add(new_user)
+            db.session.commit()
+
+            return jsonify(
+                {"success": True, "message": "注册成功！正在跳转到登录页面..."}
+            )
+        except Exception as e:
+            db.session.rollback()
+            return jsonify({"success": False, "error": "服务器错误，请稍后重试"}), 500
+
+    # GET请求显示注册页面
+    return render_template("register.html")
 
 @app.route("/login", methods=["GET", "POST"])
 def login():

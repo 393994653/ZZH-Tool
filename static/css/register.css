@@ -1,4 +1,4 @@
-/* 基础样式 */
+/* 复用登录页面的基础样式 */
 :root {
     --primary: #4a6fa5;
     --primary-dark: #3a5a8a;
@@ -41,18 +41,18 @@ body {
     /* 图标居中 */
 }
 
-/* 登录容器 */
-.login-container {
+/* 注册容器 */
+.register-container {
     background-color: white;
     border-radius: var(--border-radius);
     box-shadow: var(--box-shadow);
     width: 100%;
-    max-width: 450px;
+    max-width: 500px;
     overflow: hidden;
     animation: fadeIn 0.6s ease-out;
 }
 
-.login-header {
+.register-header {
     background-color: var(--primary);
     color: white;
     padding: 30px 20px;
@@ -60,18 +60,18 @@ body {
     position: relative;
 }
 
-.login-header .logo {
+.register-header .logo {
     font-size: 48px;
     margin-bottom: 15px;
 }
 
-.login-header h1 {
+.register-header h1 {
     font-size: 26px;
     margin-bottom: 10px;
     font-weight: 600;
 }
 
-.login-header p {
+.register-header p {
     opacity: 0.9;
     font-size: 15px;
 }
@@ -90,7 +90,7 @@ body {
 }
 
 /* 表单样式 */
-.login-form {
+.register-form {
     padding: 30px;
 }
 
@@ -141,38 +141,35 @@ body {
 
 /* 表单选项 */
 .form-options {
-    display: flex;
-    justify-content: space-between;
     margin-bottom: 25px;
     font-size: 14px;
 }
 
-.remember-me {
+.terms-agree {
     display: flex;
     align-items: center;
     cursor: pointer;
 }
 
-.remember-me span {
+.terms-agree span {
     margin-left: 8px;
 }
 
-.forgot-password {
+.terms-agree a {
     color: var(--primary);
     text-decoration: none;
-    transition: color 0.3s;
+    margin: 0 5px;
 }
 
-.forgot-password:hover {
-    color: var(--primary-dark);
+.terms-agree a:hover {
     text-decoration: underline;
 }
 
-/* 登录按钮 */
-.btn-login {
+/* 注册按钮 */
+.btn-register {
     width: 100%;
     padding: 15px;
-    background-color: var(--primary);
+    background-color: var(--success);
     color: white;
     border: none;
     border-radius: var(--border-radius);
@@ -187,8 +184,8 @@ body {
     overflow: hidden;
 }
 
-.btn-login:hover {
-    background-color: var(--primary-dark);
+.btn-register:hover {
+    background-color: #218838;
 }
 
 .loading-spinner {
@@ -202,8 +199,8 @@ body {
     margin-left: 10px;
 }
 
-/* 注册链接 */
-.signup-link {
+/* 登录链接 */
+.login-link {
     text-align: center;
     margin-top: 20px;
     font-size: 15px;
@@ -211,7 +208,7 @@ body {
     padding: 0 30px 20px;
 }
 
-.signup-link a {
+.login-link a {
     color: var(--primary);
     text-decoration: none;
     font-weight: 500;
@@ -219,7 +216,7 @@ body {
     transition: color 0.3s;
 }
 
-.signup-link a:hover {
+.login-link a:hover {
     color: var(--primary-dark);
     text-decoration: underline;
 }
@@ -230,6 +227,7 @@ body {
     display: flex;
     margin-top: 5px
 }
+
 
 /* 动画 */
 @keyframes fadeIn {
@@ -252,21 +250,15 @@ body {
 
 /* 响应式设计 */
 @media (max-width: 480px) {
-    .login-container {
+    .register-container {
         border-radius: 6px;
     }
 
-    .login-header {
+    .register-header {
         padding: 25px 15px;
     }
 
-    .login-form {
+    .register-form {
         padding: 25px 20px;
-    }
-
-    .form-options {
-        flex-direction: column;
-        gap: 15px;
-        align-items: flex-start;
     }
 }
