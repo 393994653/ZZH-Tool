@@ -705,3 +705,32 @@
 .user-info {
     cursor: pointer;
 }
+
+/* 新增的标题容器样式 */
+.header-title-container {
+    display: flex;
+    align-items: center;
+    margin-bottom: 15px;
+}
+
+.project-logo {
+    display: flex;
+    align-items: center;
+    margin-right: 15px;
+    font-weight: bold;
+    color: #2d3748;
+    cursor: pointer;
+}
+
+.logo-circle {
+    width: 30px;
+    height: 30px;
+    background-color: #4299e1;
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    margin-right: 8px;
+}

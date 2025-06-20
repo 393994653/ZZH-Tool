@@ -709,5 +709,11 @@ document.addEventListener('DOMContentLoaded', function () {
             toast.classList.add('hidden');
         }, 3000);
     }
+
+    // 当projectLogo被点击后，跳转到dashboard
+    const projectLogo = document.getElementById('projectLogo');
+    projectLogo.addEventListener('click', function () {
+        window.location.href = '/dashboard';
+    });
 });
 

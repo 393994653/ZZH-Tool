@@ -92,6 +92,12 @@ document.addEventListener('DOMContentLoaded', function () {
             card.style.transform = 'none';
         });
     });
+
+    // 当projectLogo被点击后，跳转到dashboard
+    const projectLogo = document.getElementById('projectLogo');
+    projectLogo.addEventListener('click', function () {
+        window.location.href = '/dashboard';
+    });
 });
 
 // 固定侧边栏高度
