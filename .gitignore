@@ -3,7 +3,9 @@ uploads/
 instance/
 logs/
 FFmpeg/
+config/__pycache__/
 
 key.cf
 *.log
 *.db
+*.pyc
