@@ -1,3 +1,4 @@
+import re
 from flask import (
     Flask,
     render_template,
@@ -698,7 +699,12 @@ def video_parse():
         "email": user.email,
     }
 
-    return render_template("video_parse.html", user_info=user_info, version=Const.VERSION, developer=Const.AUTHOR)
+    return render_template(
+        "video_parse.html",
+        user_info=user_info,
+        version=Const.VERSION,
+        developer=Const.AUTHOR,
+    )
 
 
 # 视频解析API
@@ -848,21 +854,28 @@ def download_video():
         # 创建临时目录
         temp_dir = os.path.join(app.config["UPLOAD_FOLDER"], "videos")
         os.makedirs(temp_dir, exist_ok=True)
-        
+
         # 添加进度钩子
         def download_progress_hook(d):
-            if d['status'] == 'downloading':
-                # 确保所有字符串都是UTF-8编码
-                percent = d.get('_percent_str', '0%').encode('utf-8', 'ignore').decode('utf-8')
-                speed = d.get('_speed_str', 'N/A').encode('utf-8', 'ignore').decode('utf-8')
-                eta = d.get('_eta_str', 'N/A').encode('utf-8', 'ignore').decode('utf-8')
-                
+            if d["status"] == "downloading":
+                # 清理特殊空格字符并确保UTF-8编码
+                def clean_string(s):
+                    # 移除ANSI转义序列（颜色代码）
+                    s = re.sub(r'\x1b\[[0-9;]*m', '', s)
+                    # 替换特殊空格为普通空格
+                    s = s.replace('\xa0', ' ')
+                    # 移除其他非打印字符
+                    return s.encode('utf-8', 'ignore').decode('utf-8').strip()
+
+                percent = clean_string(d.get("_percent_str", "0%"))
+                speed = clean_string(d.get("_speed_str", "N/A"))
+                eta = clean_string(d.get("_eta_str", "N/A"))
+
                 # 发送进度数据
-                socketio.emit('download_progress', {
-                    'percent': percent,
-                    'speed': speed,
-                    'eta': eta
-                })
+                socketio.emit(
+                    "download_progress",
+                    {"percent": percent, "speed": speed, "eta": eta},
+                )
 
         # 配置下载选项
         ydl_opts = {
@@ -880,7 +893,6 @@ def download_video():
             ydl_opts["postprocessors"] = [
                 {"key": "FFmpegVideoConvertor", "preferedformat": "mp4"}
             ]
-
 
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
             info = ydl.extract_info(video_url, download=True)
@@ -924,9 +936,9 @@ if __name__ == "__main__":
     logger.info("当前密钥：%s", app.secret_key)
 
     logger.info(f"当前系统：{platform.system()} {platform.release()}")
-    
+
     isRunning = True
-    
+
     Const.FFMPEG_PATH, Const.FFPROBE_PATH = cfg.configure_ffmpeg()
     if not Const.FFMPEG_PATH:
         logger.error(

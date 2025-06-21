@@ -515,6 +515,169 @@ document.addEventListener('DOMContentLoaded', function () {
           margin-top: 20px;
         }
       }
+
+      /* 下载成功容器 */
+      .download-success-container {
+        max-width: 600px;
+        margin: 20px auto;
+        font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif;
+        animation: fadeIn 0.6s ease-out;
+      }
+
+      .success-card {
+        background: white;
+        border-radius: 18px;
+        box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
+        padding: 40px 30px;
+        text-align: center;
+        position: relative;
+        overflow: hidden;
+      }
+
+      .success-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 6px;
+        background: linear-gradient(90deg, #4caf50, #8bc34a);
+      }
+
+      .success-icon {
+        width: 80px;
+        height: 80px;
+        background: rgba(76, 175, 80, 0.1);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 20px;
+        animation: scaleIn 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      }
+
+      .success-icon i {
+        font-size: 48px;
+        color: #4CAF50;
+      }
+
+      .success-card h3 {
+        font-size: 28px;
+        font-weight: 700;
+        margin: 0 0 10px;
+        color: #2c3e50;
+      }
+
+      .success-card p {
+        font-size: 16px;
+        color: #7f8c8d;
+        margin-bottom: 30px;
+        line-height: 1.6;
+      }
+
+      .success-actions {
+        display: flex;
+        gap: 15px;
+        justify-content: center;
+        margin-bottom: 30px;
+        flex-wrap: wrap;
+      }
+
+      .download-link {
+        background: linear-gradient(135deg, #4caf50, #2e7d32);
+        color: white !important;
+        padding: 14px 28px;
+        border-radius: 50px;
+        text-decoration: none;
+        font-weight: 600;
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        box-shadow: 0 6px 15px rgba(76, 175, 80, 0.3);
+        transition: all 0.3s ease;
+        min-width: 180px;
+        justify-content: center;
+      }
+
+      .download-link:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 10px 20px rgba(76, 175, 80, 0.4);
+      }
+
+      .download-link:active {
+        transform: translateY(0);
+      }
+
+      .btn-parse {
+        background: white;
+        color: #3498db;
+        border: 2px solid #3498db;
+        padding: 12px 28px;
+        border-radius: 50px;
+        font-weight: 600;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        transition: all 0.3s ease;
+        min-width: 180px;
+        justify-content: center;
+      }
+
+      .btn-parse:hover {
+        background: #f5fbff;
+        transform: translateY(-2px);
+      }
+
+      .file-info {
+        background: #f8fafc;
+        border-radius: 14px;
+        padding: 18px;
+        text-align: left;
+        margin-top: 20px;
+        border: 1px solid #e2e8f0;
+      }
+
+      .info-item {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+      }
+
+      .info-item i {
+        color: #4caf50;
+        font-size: 18px;
+        min-width: 24px;
+      }
+
+      .info-item span {
+        font-size: 15px;
+        color: #2d3748;
+        word-break: break-all;
+      }
+
+      /* 动画 */
+      @keyframes scaleIn {
+        from {
+          transform: scale(0);
+          opacity: 0;
+        }
+        to {
+          transform: scale(1);
+          opacity: 1;
+        }
+      }
+
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+          transform: translateY(20px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
     `;
 
     document.head.appendChild(style);
@@ -551,7 +714,6 @@ document.addEventListener('DOMContentLoaded', function () {
 
   // 显示下载成功消息
   function showDownloadSuccess(downloadUrl, filename) {
-    // 解码文件名以正确显示
     const decodedFilename = decodeURIComponent(filename);
 
     parseResult.innerHTML = `
@@ -561,7 +723,7 @@ document.addEventListener('DOMContentLoaded', function () {
             <i class="fas fa-check-circle"></i>
           </div>
           <h3>视频下载完成!</h3>
-          <p>视频已成功下载，可以保存到您的设备</p>
+          <p>视频已成功处理完成，可以保存到您的设备</p>
           
           <div class="success-actions">
             <a href="${downloadUrl}" class="download-link" download="${filename}">
@@ -574,7 +736,7 @@ document.addEventListener('DOMContentLoaded', function () {
           
           <div class="file-info">
             <div class="info-item">
-              <i class="fas fa-file"></i>
+              <i class="fas fa-file-video"></i>
               <span>${decodedFilename}</span>
             </div>
           </div>
