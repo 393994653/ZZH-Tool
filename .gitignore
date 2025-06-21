@@ -2,6 +2,7 @@
 uploads/
 instance/
 logs/
+FFmpeg/
 
 key.cf
 *.log
