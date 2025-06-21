@@ -1,0 +1,161 @@
+{% extends 'base.html' %}
+
+{% block title %}
+  视频解析工具
+{% endblock %}
+
+{% block styles %}
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/video_parse.css') }}" />
+{% endblock %}
+
+{% block content %}
+  <div class="dashboard-container">
+    <!-- 主内容区 -->
+    <main class="main-content" id="mainContent">
+      <!-- 顶栏 -->
+      <header class="top-navbar">
+        <div class="navbar-container">
+          <div class="left-section">
+            <div class="project-logo" id="projectLogo">
+              <div class="logo-circle">Z</div>
+              <span>ZZH-Tool</span>
+            </div>
+          </div>
+
+          <div class="right-section">
+            <div class="user-dropdown" id="userDropdown">
+              <div class="user-info" id="userInfo">
+                <div class="user-avatar-text">{{ user_info.username|first|upper }}</div>
+                <span>{{ user_info.username }}</span>
+                <i class="fas fa-chevron-down"></i>
+              </div>
+
+              <div class="dropdown-menu" id="dropdownMenu">
+                <div class="dropdown-header">
+                  <div class="dropdown-avatar-text">{{ user_info.username|first|upper }}</div>
+                  <div>
+                    <h3>{{ user_info.username }}</h3>
+                    <p>{{ user_info.email }}</p>
+                  </div>
+                </div>
+
+                <div class="dropdown-divider"></div>
+
+                <a href="#" class="dropdown-item">
+                  <i class="fas fa-user"></i>
+                  <span>个人资料</span>
+                </a>
+
+                <a href="#" class="dropdown-item">
+                  <i class="fas fa-cog"></i>
+                  <span>账户设置</span>
+                </a>
+
+                <a href="#" class="dropdown-item">
+                  <i class="fas fa-shield-alt"></i>
+                  <span>安全设置</span>
+                </a>
+
+                <div class="dropdown-divider"></div>
+
+                <a href="/logout" class="dropdown-item logout">
+                  <i class="fas fa-sign-out-alt"></i>
+                  <span>退出登录</span>
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <!-- 视频解析内容 -->
+      <div class="dashboard-content">
+        <div class="video-parse-container">
+          <div class="parse-header">
+            <h2><i class="fas fa-film"></i> 视频解析工具</h2>
+            <p>支持解析Bilibili、抖音、快手、YouTube等主流平台的视频</p>
+          </div>
+
+          <div class="parse-card">
+            <div class="parse-form">
+              <div class="input-group">
+                <input type="text" id="videoUrl" placeholder="请输入视频链接 (例如: https://www.bilibili.com/video/BV1xx411c7Xg)" autocomplete="off" />
+                <button id="parseBtn" class="btn-parse"><i class="fas fa-play"></i> 解析视频</button>
+              </div>
+            </div>
+
+            <div class="parse-result" id="parseResult">
+              <div class="result-placeholder">
+                <div class="placeholder-icon">
+                  <i class="fas fa-cloud-download-alt"></i>
+                </div>
+                <p>输入视频链接并点击"解析视频"按钮</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="supported-platforms">
+            <h3>支持平台</h3>
+            <div class="platform-icons">
+              <div class="platform">
+                <div class="platform-icon bg-bilibili">
+                  <i class="fab fa-bilibili"></i>
+                </div>
+                <span>哔哩哔哩</span>
+              </div>
+              <div class="platform">
+                <div class="platform-icon bg-douyin">
+                  <i class="fas fa-music"></i>
+                </div>
+                <span>抖音</span>
+              </div>
+              <div class="platform">
+                <div class="platform-icon bg-kuaishou">
+                  <i class="fas fa-play-circle"></i>
+                </div>
+                <span>快手</span>
+              </div>
+              <div class="platform">
+                <div class="platform-icon bg-youtube">
+                  <i class="fab fa-youtube"></i>
+                </div>
+                <span>YouTube</span>
+              </div>
+              <div class="platform">
+                <div class="platform-icon bg-twitter">
+                  <i class="fab fa-twitter"></i>
+                </div>
+                <span>Twitter</span>
+              </div>
+              <div class="platform">
+                <div class="platform-icon bg-instagram">
+                  <i class="fab fa-instagram"></i>
+                </div>
+                <span>Instagram</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="usage-guide">
+            <h3><i class="fas fa-question-circle"></i> 使用指南</h3>
+            <ol>
+              <li>复制您想下载的视频链接</li>
+              <li>将链接粘贴到上方输入框中</li>
+              <li>选择您想要的视频质量（可选）</li>
+              <li>点击"解析视频"按钮</li>
+              <li>等待解析完成，然后下载视频</li>
+            </ol>
+            <div class="note">
+              <p>
+                <strong>注意：</strong>请遵守平台使用条款，仅下载允许下载的内容。本工具仅用于学习目的。
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- JavaScript文件 -->
+  <script src="{{ url_for('static', filename='js/video_parse.js') }}"></script>
+{% endblock %}

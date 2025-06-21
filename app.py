@@ -14,8 +14,13 @@ from flask_sqlalchemy import SQLAlchemy
 import os, json
 from datetime import datetime
 from werkzeug.utils import secure_filename
+import yt_dlp
+import logging
+import platform
+
 
 from config.config import Config
+import config.config as cfg
 from config.const import *
 
 # 创建Flask应用
@@ -75,14 +80,14 @@ class Message(db.Model):
     def to_dict(self):
         sender = User.query.get(self.sender_id)
         return {
-            'id': self.id,
-            'sender_id': self.sender_id,
-            'sender_username': sender.username if sender else "未知",
-            'recipient_id': self.recipient_id,
-            'content': self.content,
-            'timestamp': self.timestamp.strftime("%Y-%m-%d %H:%M:%S"),
-            'read': self.read,
-            'attachment': self.attachment.to_dict() if self.attachment else None
+            "id": self.id,
+            "sender_id": self.sender_id,
+            "sender_username": sender.username if sender else "未知",
+            "recipient_id": self.recipient_id,
+            "content": self.content,
+            "timestamp": self.timestamp.strftime("%Y-%m-%d %H:%M:%S"),
+            "read": self.read,
+            "attachment": self.attachment.to_dict() if self.attachment else None,
         }
 
 
@@ -148,12 +153,14 @@ with app.app_context():
             db.session.add(friendship)
             db.session.commit()
 
+
 ### 主页、登录、注册
 @app.route("/")
 def index():
     if "logged_in" in session and session["logged_in"]:
         return redirect(url_for("dashboard"))
     return redirect(url_for("login"))
+
 
 @app.route("/register", methods=["GET", "POST"])
 def register():
@@ -193,6 +200,7 @@ def register():
 
     # GET请求显示注册页面
     return render_template("register.html")
+
 
 @app.route("/login", methods=["GET", "POST"])
 def login():
@@ -275,8 +283,8 @@ def dashboard():
         "dashboard.html",
         user_info=user_info,
         unread_number=unread_number,
-        game_record_number = 0,
-        file_number = 0,
+        game_record_number=0,
+        file_number=0,
         version=Const.VERSION,
         developer=Const.AUTHOR,
         current_date=(
@@ -421,6 +429,8 @@ def chat():
         contacts=contacts_data,
         current_contact=current_contact.to_dict(),
         messages=[m.to_dict() for m in messages],
+        version=Const.VERSION,
+        developer=Const.AUTHOR,
     )
 
 
@@ -618,7 +628,7 @@ def handle_send_message(data):
         sender_id=user_id,
         recipient_id=data["recipient_id"],
         content=data["content"],
-        timestamp=datetime.now()
+        timestamp=datetime.now(),
     )
 
     # 如果有附件
@@ -672,9 +682,260 @@ def handle_mark_as_read(data):
         )
 
 
+### 视频解析
+@app.route("/video_parse", methods=["GET"])
+def video_parse():
+    if "logged_in" not in session or not session["logged_in"]:
+        return redirect(url_for("login"))
+
+    # 获取用户信息
+    user = User.query.get(session["user_id"])
+    if not user:
+        session.clear()
+        return redirect(url_for("login"))
+
+    user_info = {
+        "username": session.get("user"),
+        "login_time": session.get("login_time"),
+        "email": user.email,
+    }
+
+    return render_template("video_parse.html", user_info=user_info, version=Const.VERSION, developer=Const.AUTHOR)
+
+
+# 视频解析API
+@app.route("/parse_video", methods=["POST"])
+def parse_video():
+    if "user_id" not in session:
+        return jsonify({"success": False, "error": "未登录"}), 401
+
+    data = request.get_json()
+    video_url = data.get("url")
+
+    if not video_url:
+        return jsonify({"success": False, "error": "请输入视频链接"}), 400
+
+    try:
+        # 第一步：获取所有可用格式
+        format_ydl = yt_dlp.YoutubeDL(
+            {
+                "quiet": True,
+                "no_warnings": True,
+                "simulate": True,
+                "listformats": True,
+            }
+        )
+
+        format_info = format_ydl.extract_info(video_url, download=False)
+
+        # 提取可用格式
+        available_formats = {}
+        audio_formats = []
+
+        for fmt in format_info.get("formats", []):
+            if fmt.get("format_id"):
+                resolution = fmt.get("height", 0)
+                ext = fmt.get("ext", "unknown")
+                filesize = fmt.get("filesize", 0)
+                vcodec = fmt.get("vcodec", "none")
+                acodec = fmt.get("acodec", "none")
+                format_note = fmt.get("format_note", "")
+
+                # 创建格式描述
+                format_desc = f"{ext.upper()}"
+                if resolution:
+                    format_desc += f" {resolution}p"
+                if format_note:
+                    format_desc += f" - {format_note}"
+                if filesize:
+                    format_desc += f" ({filesize//1024//1024}MB)"
+
+                # 区分视频格式和音频格式
+                if vcodec != "none" and acodec != "none" and acodec != "none?":
+                    # 视频+音频格式
+                    format_desc += " (含音频)"
+                elif vcodec != "none" and vcodec != "none?":
+                    # 纯视频格式
+                    format_desc += " (仅视频)"
+                elif acodec != "none" and acodec != "none?":
+                    # 纯音频格式
+                    format_desc += " (仅音频)"
+                    audio_formats.append(
+                        {"id": fmt["format_id"], "description": format_desc, "ext": ext}
+                    )
+                    continue
+                else:
+                    # 未知格式
+                    format_desc += " (未知)"
+
+                # 按分辨率分组
+                if resolution not in available_formats:
+                    available_formats[resolution] = []
+                available_formats[resolution].append(
+                    {
+                        "id": fmt["format_id"],
+                        "description": format_desc,
+                        "ext": ext,
+                        "has_audio": acodec != "none" and acodec != "none?",
+                    }
+                )
+
+        # 第二步：获取视频元数据
+        meta_ydl = yt_dlp.YoutubeDL(
+            {
+                "quiet": True,
+                "no_warnings": True,
+                "simulate": True,
+                "forcejson": True,
+            }
+        )
+
+        meta_info = meta_ydl.extract_info(video_url, download=False)
+
+        # 简化返回信息
+        video_info = {
+            "id": meta_info.get("id"),
+            "title": meta_info.get("title"),
+            "thumbnail": meta_info.get("thumbnail"),
+            "duration": meta_info.get("duration"),
+            "uploader": meta_info.get("uploader"),
+            "upload_date": meta_info.get("upload_date"),
+            "view_count": meta_info.get("view_count"),
+            "extractor": meta_info.get("extractor"),
+            "webpage_url": meta_info.get("webpage_url"),
+            "formats": available_formats,
+            "audio_formats": audio_formats,
+        }
+
+        return jsonify({"success": True, "video_info": video_info})
+
+    except yt_dlp.utils.DownloadError as e:
+        error_msg = str(e)
+        # 提取更友好的错误信息
+        if "Requested format is not available" in error_msg:
+            error_msg = "请求的格式不可用，请尝试其他格式"
+        elif "Unsupported URL" in error_msg:
+            error_msg = "不支持的URL，请检查链接是否正确"
+        elif "Video unavailable" in error_msg:
+            error_msg = "视频不可用或已被删除"
+        return jsonify({"success": False, "error": f"解析失败: {error_msg}"}), 400
+    except yt_dlp.utils.ExtractorError as e:
+        return jsonify({"success": False, "error": f"提取失败: {str(e)}"}), 400
+    except Exception as e:
+        app.logger.error(f"视频解析错误: {str(e)}")
+        return jsonify({"success": False, "error": f"服务器错误: {str(e)}"}), 500
+
+
+@app.route("/download_video", methods=["POST"])
+def download_video():
+    if "user_id" not in session:
+        return jsonify({"success": False, "error": "未登录"}), 401
+
+    data = request.get_json()
+    video_url = data.get("url")
+    format_id = data.get("format_id")
+    merge_audio = data.get("merge_audio", True)
+
+    if not video_url or not format_id:
+        return jsonify({"success": False, "error": "参数错误"}), 400
+
+    # 检查 FFmpeg 是否可用
+    if not Const.FFMPEG_PATH:
+        return (
+            jsonify({"success": False, "error": "服务器未配置 FFmpeg，无法处理视频"}),
+            500,
+        )
+
+    try:
+        # 创建临时目录
+        temp_dir = os.path.join(app.config["UPLOAD_FOLDER"], "videos")
+        os.makedirs(temp_dir, exist_ok=True)
+        
+        # 添加进度钩子
+        def download_progress_hook(d):
+            if d['status'] == 'downloading':
+                # 确保所有字符串都是UTF-8编码
+                percent = d.get('_percent_str', '0%').encode('utf-8', 'ignore').decode('utf-8')
+                speed = d.get('_speed_str', 'N/A').encode('utf-8', 'ignore').decode('utf-8')
+                eta = d.get('_eta_str', 'N/A').encode('utf-8', 'ignore').decode('utf-8')
+                
+                # 发送进度数据
+                socketio.emit('download_progress', {
+                    'percent': percent,
+                    'speed': speed,
+                    'eta': eta
+                })
+
+        # 配置下载选项
+        ydl_opts = {
+            "format": format_id,
+            "outtmpl": os.path.join(temp_dir, "%(title)s.%(ext)s"),
+            "merge_output_format": "mp4",
+            "ffmpeg_location": Const.FFMPEG_PATH,
+            "postprocessor_args": ["-y"],  # 覆盖输出文件
+            "verbose": True,
+            "progress_hooks": [download_progress_hook],
+        }
+
+        # 添加后处理器
+        if merge_audio:
+            ydl_opts["postprocessors"] = [
+                {"key": "FFmpegVideoConvertor", "preferedformat": "mp4"}
+            ]
+
+
+        with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+            info = ydl.extract_info(video_url, download=True)
+            filename = ydl.prepare_filename(info)
+
+            # 获取下载URL
+            download_url = url_for(
+                "download_video_file",
+                filename=os.path.basename(filename),
+                _external=True,
+            )
+
+            return jsonify(
+                {
+                    "success": True,
+                    "filename": os.path.basename(filename),
+                    "download_url": download_url,
+                }
+            )
+
+    except yt_dlp.utils.DownloadError as e:
+        logging.error(f"视频下载失败: {str(e)}")
+        return jsonify({"success": False, "error": f"下载失败: {str(e)}"}), 400
+    except Exception as e:
+        logging.error(f"视频下载错误: {str(e)}")
+        return jsonify({"success": False, "error": f"服务器错误: {str(e)}"}), 500
+
+
+@app.route("/download_video/<filename>")
+def download_video_file(filename):
+    video_dir = os.path.join(app.config["UPLOAD_FOLDER"], "videos")
+    return send_from_directory(video_dir, filename, as_attachment=True)
+
+
 if __name__ == "__main__":
     print("Starting Flask app...")
     if not os.path.exists("key.cf"):
         print("Secret key file not found, creating a new one...")
     print("App secret key: ", app.secret_key)
+
+    Const.FFMPEG_PATH, Const.FFPROBE_PATH = cfg.configure_ffmpeg()
+    if not Const.FFMPEG_PATH:
+        logging.error(
+            """
+        ########################################################
+        # FFmpeg 未正确配置！请确保：
+        # 1. 下载 FFmpeg 完整版 (https://www.gyan.dev/ffmpeg/builds/)
+        # 2. 解压到项目根目录下的 FFmpeg 文件夹
+        # 3. 项目结构应为: /项目/FFmpeg/bin/ffmpeg.exe
+        ########################################################
+        """
+        )
+    else:
+        logging.info(f"FFmpeg 路径配置成功: {Const.FFMPEG_PATH}")
+
     socketio.run(app, debug=Config.DEBUG, port=Config.PORT)
