@@ -21,6 +21,7 @@ import platform
 
 from config.config import Config
 import config.config as cfg
+from config.config import logger
 from config.const import *
 
 # 创建Flask应用
@@ -116,10 +117,7 @@ class Friendship(db.Model):
 
 # 初始用户数据
 INITIAL_USERS = {
-    "admin": {"email": "admin@example.com", "password": "zhenghao135"},
-    "ZZH39399": {"email": "393994653@qq.com", "password": "zhenghao135"},
-    "guest": {"email": "guest@example.com", "password": "guest123"},
-    "zheng": {"email": "zheng@example.com", "password": "zheng123"},
+    "admin": {"email": "admin@example.com", "password": "admin123"},
 }
 with app.app_context():
     db.create_all()
@@ -588,7 +586,7 @@ def handle_connect():
 
         # 将用户加入其个人房间
         join_room(str(user_id))
-        print(f"用户 {user_id} 已连接")
+        logger.info(f"用户 {user_id} 已连接")
 
 
 @socketio.on("disconnect")
@@ -604,7 +602,7 @@ def handle_disconnect():
             # 通知所有联系人
             emit("status_update", {"user_id": user_id, "online": False}, broadcast=True)
 
-        print(f"用户 {user_id} 已断开连接")
+        logger.info(f"用户 {user_id} 已断开连接")
 
 
 # WebSocket事件处理
@@ -614,7 +612,7 @@ def handle_join_user(data):
     if user_id:
         # 将用户加入其个人房间
         join_room(str(user_id))
-        print(f"用户 {user_id} 加入房间")
+        logger.info(f"用户 {user_id} 加入房间")
 
 
 @socketio.on("send_message")
@@ -904,10 +902,10 @@ def download_video():
             )
 
     except yt_dlp.utils.DownloadError as e:
-        logging.error(f"视频下载失败: {str(e)}")
+        logger.error(f"视频下载失败: {str(e)}")
         return jsonify({"success": False, "error": f"下载失败: {str(e)}"}), 400
     except Exception as e:
-        logging.error(f"视频下载错误: {str(e)}")
+        logger.error(f"视频下载错误: {str(e)}")
         return jsonify({"success": False, "error": f"服务器错误: {str(e)}"}), 500
 
 
@@ -918,24 +916,32 @@ def download_video_file(filename):
 
 
 if __name__ == "__main__":
-    print("Starting Flask app...")
-    if not os.path.exists("key.cf"):
-        print("Secret key file not found, creating a new one...")
-    print("App secret key: ", app.secret_key)
+    cfg.init()
 
+    logger.info("正在启动 Flask 应用...")
+    if not os.path.exists("key.cf"):
+        logger.info("密钥文件未找到，正在创建...")
+    logger.info("当前密钥：%s", app.secret_key)
+
+    logger.info(f"当前系统：{platform.system()} {platform.release()}")
+    
+    isRunning = True
+    
     Const.FFMPEG_PATH, Const.FFPROBE_PATH = cfg.configure_ffmpeg()
     if not Const.FFMPEG_PATH:
-        logging.error(
+        logger.error(
             """
-        ########################################################
-        # FFmpeg 未正确配置！请确保：
-        # 1. 下载 FFmpeg 完整版 (https://www.gyan.dev/ffmpeg/builds/)
-        # 2. 解压到项目根目录下的 FFmpeg 文件夹
-        # 3. 项目结构应为: /项目/FFmpeg/bin/ffmpeg.exe
-        ########################################################
-        """
+            ########################################################
+            # FFmpeg 未正确配置！请确保：
+            # 1. 下载 FFmpeg 完整版 (https://www.gyan.dev/ffmpeg/builds/)
+            # 2. 解压到项目根目录下的 FFmpeg 文件夹
+            # 3. 项目结构应为: /FFmpeg/bin/ffmpeg.exe
+            ########################################################
+            """
         )
+        isRunning = False
     else:
-        logging.info(f"FFmpeg 路径配置成功: {Const.FFMPEG_PATH}")
+        logger.info(f"FFmpeg 路径配置成功: {Const.FFMPEG_PATH}")
 
-    socketio.run(app, debug=Config.DEBUG, port=Config.PORT)
+    if isRunning:
+        socketio.run(app, debug=False, port=8081)

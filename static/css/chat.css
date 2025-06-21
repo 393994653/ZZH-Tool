@@ -725,7 +725,7 @@
 .logo-circle {
     width: 30px;
     height: 30px;
-    background-color: #4299e1;
+    background: linear-gradient(135deg, #4a6fa5, #6b8cbc);
     color: white;
     border-radius: 50%;
     display: flex;

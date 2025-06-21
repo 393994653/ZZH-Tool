@@ -1,16 +1,46 @@
+from datetime import datetime
 import os
 import secrets
 import platform
 import logging
-
+from tqdm import tqdm
 import zipfile
 import requests
 
 
-class Config:
-    DEBUG = True  # Enable debug mode for development
-    PORT = 8081  # Port to run the Flask application
+logger = logging.getLogger("ZZH-Tool")  # 获取根logger
 
+def init():
+    global logger
+    
+    if not os.path.exists("logs"):
+        os.makedirs("logs")
+    
+    # 创建logger
+    logger.setLevel(logging.DEBUG)  # 设置最低级别
+
+    # 创建控制台处理器
+    console_handler = logging.StreamHandler()
+    console_handler.setLevel(logging.INFO)  # 控制台只输出INFO以上级别
+
+    # 创建文件处理器
+    file_handler = logging.FileHandler(
+        f"logs/{ (str(datetime.now().strftime("%Y%m%d%H%M%S"))) }.log",
+        encoding="utf-8"
+    )
+    file_handler.setLevel(logging.DEBUG)  # 文件记录所有级别
+
+    # 定义格式
+    formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
+    console_handler.setFormatter(formatter)
+    file_handler.setFormatter(formatter)
+
+    # 添加处理器到logger
+    logger.addHandler(console_handler)
+    logger.addHandler(file_handler)
+
+
+class Config:
     # open "key.cf" and read the Secret Key
     if not os.path.exists("key.cf"):
         # If the file does not exist, create it with a new secret key
@@ -34,10 +64,9 @@ def configure_ffmpeg():
 
     # 检查文件是否存在
     if not os.path.exists(ffmpeg_path):
-        logging.error(f"FFmpeg 未找到: {ffmpeg_path}")
-        logging.info("尝试自动下载并安装 FFmpeg...")
+        logger.error(f"FFmpeg 未找到: {ffmpeg_path}")
+        logger.info("尝试自动下载并安装 FFmpeg...")
         if download_and_extract_ffmpeg() == False:
-            logging.error("FFmpeg 下载或解压失败，请手动安装 FFmpeg。")
             return None, None
 
     # 在 Windows 上添加执行权限
@@ -48,7 +77,7 @@ def configure_ffmpeg():
             os.chmod(ffmpeg_path, stat.S_IXUSR)
             os.chmod(ffprobe_path, stat.S_IXUSR)
         except Exception as e:
-            logging.warning(f"无法设置执行权限: {str(e)}")
+            logger.warning(f"无法设置执行权限: {str(e)}")
 
     return ffmpeg_path, ffprobe_path
 
@@ -71,15 +100,47 @@ def download_and_extract_ffmpeg():
         download_path = os.path.join(ffmpeg_dir, "ffmpeg.tar.xz")
 
     try:
-        # 下载 FFmpeg
-        logging.info("正在下载 FFmpeg...")
-        response = requests.get(url, stream=True)
-        with open(download_path, "wb") as f:
-            for chunk in response.iter_content(chunk_size=8192):
-                f.write(chunk)
+        # 如果有系统代理则设置系统代理
+        proxies = {}
+        http_proxy = os.environ.get("http_proxy") or os.environ.get("HTTP_PROXY")
+        https_proxy = os.environ.get("https_proxy") or os.environ.get("HTTPS_PROXY")
+        if http_proxy:
+            proxies["http"] = http_proxy
+        if https_proxy:
+            proxies["https"] = https_proxy
+        if proxies:
+            logger.info(f"使用系统代理: {proxies}")
+        else:
+            proxies = None
+        
+        # 发送HEAD请求获取文件总大小
+        head_response = requests.head(url, allow_redirects=True)
+        total_size = int(head_response.headers.get("content-length", 0))
 
+        # 发送GET请求开始下载
+        response = requests.get(url, stream=True, proxies=proxies)
+
+        # 使用tqdm创建进度条
+        with tqdm(
+            total=total_size,
+            unit="B",
+            unit_scale=True,
+            desc="下载进度",
+            bar_format="{l_bar}{bar}| {n_fmt}/{total_fmt} [{elapsed}<{remaining}, {rate_fmt}]",
+        ) as pbar:
+            with open(download_path, "wb") as f:
+                for chunk in response.iter_content(chunk_size=8192):
+                    if chunk:
+                        f.write(chunk)
+                        # 更新进度条
+                        pbar.update(len(chunk))
+    except Exception as e:
+        logger.error(f"下载 FFmpeg 失败: {str(e)}，请检查网络连接或手动下载。")
+        return False
+    
+    try:                 
         # 解压文件
-        logging.info("解压 FFmpeg...")
+        logger.info("解压 FFmpeg...")
         if platform.system() == "Windows":
             # 使用 7-Zip 解压
             try:
@@ -88,7 +149,7 @@ def download_and_extract_ffmpeg():
                 with py7zr.SevenZipFile(download_path, mode="r") as z:
                     z.extractall(path=ffmpeg_dir)
             except ImportError:
-                logging.error("请安装 py7zr 库: pip install py7zr")
+                logger.error("请安装 py7zr 库: pip install py7zr")
                 os.remove(download_path)
                 return
         else:
@@ -100,11 +161,9 @@ def download_and_extract_ffmpeg():
 
         # 清理下载文件
         os.remove(download_path)
-        logging.info("FFmpeg 安装完成！")
-        
+        logger.info("FFmpeg 安装完成！")
 
     except Exception as e:
-        logging.error(f"自动安装 FFmpeg 失败: {str(e)}")
+        logger.error(f"解压 FFmpeg 失败: {str(e)}，请前往FFmpeg文件夹手动解压。")
         return False
     return True
-
