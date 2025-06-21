@@ -101,6 +101,7 @@ def download_and_extract_ffmpeg():
         # 清理下载文件
         os.remove(download_path)
         logging.info("FFmpeg 安装完成！")
+        
 
     except Exception as e:
         logging.error(f"自动安装 FFmpeg 失败: {str(e)}")
