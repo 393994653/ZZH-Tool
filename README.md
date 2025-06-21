@@ -22,20 +22,20 @@ ZZH-Tool是一个基于Python Flask开发的多功能Web工具箱，集成了聊
 
 ## 安装指南
 
-### 1 克隆仓库
+### 1.克隆仓库
 ```bash
 git clone https://github.com/393994653/ZZH-Tool.git
 cd ZZH-Tool
 ```
 
-### 1.1 创建虚拟环境
+### 2.创建虚拟环境
 ```bash
 python -m venv .venv
 source .venv/bin/activate  # Linux/macOS
 .\.venv\Scripts\activate   # Windows
 ```
 
-### 2 安装依赖并启动服务
+### 3.安装依赖并启动服务
 ```bash
 pip install -r requirements.txt
 python app.py
