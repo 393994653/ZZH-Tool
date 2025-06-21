@@ -1,4 +1,8 @@
 .venv/
 uploads/
+instance/
+logs/
+
 key.cf
 *.log
+*.db
