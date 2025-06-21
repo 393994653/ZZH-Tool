@@ -35,6 +35,7 @@ def configure_ffmpeg():
     # 检查文件是否存在
     if not os.path.exists(ffmpeg_path):
         logging.error(f"FFmpeg 未找到: {ffmpeg_path}")
+        logging.info("尝试自动下载并安装 FFmpeg...")
         if download_and_extract_ffmpeg() == False:
             logging.error("FFmpeg 下载或解压失败，请手动安装 FFmpeg。")
             return None, None
