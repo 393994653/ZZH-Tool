@@ -1,0 +1,873 @@
+/* 文件转换页面样式 */
+.file-converter-container {
+    max-width: 1000px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+.converter-header {
+    text-align: center;
+    margin-bottom: 30px;
+    padding: 20px;
+    background-color: white;
+    border-radius: 12px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+}
+
+.converter-header h2 {
+    font-size: 28px;
+    color: #2d3748;
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+}
+
+.converter-header h2 i {
+    color: #4a6fa5;
+}
+
+.converter-header p {
+    color: #718096;
+    font-size: 16px;
+    margin: 0;
+}
+
+.converter-card {
+    background-color: white;
+    border-radius: 12px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+    overflow: hidden;
+    margin-bottom: 30px;
+}
+
+.converter-form {
+    padding: 25px;
+    background: linear-gradient(135deg, #f8fafc, #edf2f7);
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.upload-area {
+    border: 2px dashed #cbd5e0;
+    border-radius: 12px;
+    padding: 40px 20px;
+    text-align: center;
+    margin-bottom: 25px;
+    position: relative;
+    transition: all 0.3s;
+    background-color: white;
+    cursor: pointer;
+}
+
+.upload-area:hover,
+.upload-area.drag-over {
+    border-color: #4a6fa5;
+    background-color: #f0f7ff;
+}
+
+.upload-placeholder i {
+    font-size: 48px;
+    color: #cbd5e0;
+    margin-bottom: 15px;
+}
+
+.upload-placeholder h3 {
+    font-size: 18px;
+    color: #4a5568;
+    margin-bottom: 5px;
+}
+
+.upload-placeholder p {
+    font-size: 14px;
+    color: #a0aec0;
+    margin: 0;
+}
+
+#fileInput {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    opacity: 0;
+    cursor: pointer;
+}
+
+.file-info {
+    display: none;
+    align-items: center;
+    background-color: white;
+    border-radius: 8px;
+    padding: 15px;
+    margin-top: 15px;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+}
+
+.file-icon {
+    width: 50px;
+    height: 50px;
+    background-color: #edf2f7;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 15px;
+    font-size: 24px;
+    color: #4a6fa5;
+}
+
+.file-details {
+    flex: 1;
+}
+
+.file-name {
+    font-weight: 500;
+    color: #2d3748;
+    margin-bottom: 5px;
+    word-break: break-all;
+}
+
+.file-size {
+    font-size: 14px;
+    color: #718096;
+}
+
+.converter-options {
+    background-color: white;
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 20px;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+}
+
+.option-group {
+    display: flex;
+    align-items: center;
+    margin-bottom: 15px;
+}
+
+.option-group label {
+    font-weight: 500;
+    color: #4a5568;
+    width: 120px;
+    margin-right: 15px;
+}
+
+.option-group select,
+.option-group input {
+    flex: 1;
+    padding: 10px 15px;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    background-color: white;
+    font-size: 15px;
+}
+
+.additional-options {
+    display: none;
+    background-color: #f8fafc;
+    border-radius: 10px;
+    padding: 15px;
+    margin-top: 15px;
+}
+
+.option {
+    display: flex;
+    align-items: center;
+    margin-bottom: 12px;
+}
+
+.option:last-child {
+    margin-bottom: 0;
+}
+
+.option label {
+    font-weight: 500;
+    color: #4a5568;
+    margin-right: 10px;
+    min-width: 100px;
+}
+
+.option input[type="range"] {
+    flex: 1;
+    margin-right: 10px;
+}
+
+.option input[type="checkbox"] {
+    margin-right: 8px;
+}
+
+.action-buttons {
+    display: flex;
+    gap: 15px;
+}
+
+.btn-convert {
+    flex: 1;
+    background: linear-gradient(135deg, #4a6fa5, #6b8cbc);
+    color: white;
+    border: none;
+    padding: 14px 20px;
+    border-radius: 8px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+}
+
+.btn-convert:hover:not(:disabled) {
+    background: linear-gradient(135deg, #3d5d8a, #5a78a5);
+    transform: translateY(-2px);
+}
+
+.btn-convert:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.btn-clear {
+    background-color: #f8fafc;
+    color: #4a5568;
+    border: 1px solid #e2e8f0;
+    padding: 14px 20px;
+    border-radius: 8px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+}
+
+.btn-clear:hover {
+    background-color: #edf2f7;
+}
+
+.converter-result {
+    padding: 25px;
+    min-height: 300px;
+    display: flex;
+    flex-direction: column;
+}
+
+.result-placeholder {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    color: #a0aec0;
+    text-align: center;
+}
+
+.placeholder-icon {
+    font-size: 60px;
+    margin-bottom: 20px;
+    color: #cbd5e0;
+}
+
+.conversion-result {
+    display: none;
+    background-color: white;
+    border-radius: 12px;
+    padding: 25px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+    text-align: center;
+}
+
+.result-icon {
+    width: 80px;
+    height: 80px;
+    background-color: rgba(74, 111, 165, 0.1);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 20px;
+    font-size: 36px;
+    color: #4a6fa5;
+}
+
+.result-title {
+    font-size: 22px;
+    font-weight: 600;
+    color: #2d3748;
+    margin-bottom: 15px;
+}
+
+.result-file {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: #f8fafc;
+    border-radius: 10px;
+    padding: 15px;
+    margin: 20px 0;
+}
+
+.result-file-icon {
+    width: 50px;
+    height: 50px;
+    background-color: #e6f7ff;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 15px;
+    font-size: 24px;
+    color: #1890ff;
+}
+
+.result-file-name {
+    font-weight: 500;
+    color: #2d3748;
+    word-break: break-all;
+}
+
+.result-file-size {
+    font-size: 14px;
+    color: #718096;
+}
+
+.result-actions {
+    display: flex;
+    gap: 15px;
+    justify-content: center;
+}
+
+.btn-download {
+    background: linear-gradient(135deg, #10b981, #34d399);
+    color: white;
+    border: none;
+    padding: 12px 25px;
+    border-radius: 8px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.btn-download:hover {
+    background: linear-gradient(135deg, #0da271, #2bbd8c);
+    transform: translateY(-2px);
+}
+
+.btn-convert-again {
+    background: white;
+    color: #4a6fa5;
+    border: 2px solid #4a6fa5;
+    padding: 12px 25px;
+    border-radius: 8px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.btn-convert-again:hover {
+    background-color: #f0f7ff;
+}
+
+/* 加载动画 */
+.loading-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 50px 0;
+}
+
+.loading-spinner {
+    display: inline-block;
+    width: 50px;
+    height: 50px;
+    border: 5px solid rgba(74, 111, 165, 0.3);
+    border-radius: 50%;
+    border-top: 5px solid #4a6fa5;
+    animation: spin 1s linear infinite;
+    margin-bottom: 20px;
+}
+
+.loading-text {
+    text-align: center;
+    color: #4a5568;
+    font-size: 18px;
+}
+
+@keyframes spin {
+    0% {
+        transform: rotate(0deg);
+    }
+
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+/* 错误提示 */
+.error-message {
+    background-color: #fff5f5;
+    border: 1px solid #fed7d7;
+    border-radius: 8px;
+    padding: 20px;
+    text-align: center;
+    color: #e53e3e;
+}
+
+.error-message i {
+    font-size: 40px;
+    margin-bottom: 15px;
+    display: block;
+}
+
+.error-message p {
+    margin-bottom: 20px;
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+    .option-group {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .option-group label {
+        margin-bottom: 8px;
+        width: 100%;
+    }
+
+    .action-buttons {
+        flex-direction: column;
+    }
+
+    .result-actions {
+        flex-direction: column;
+    }
+
+    .result-actions button {
+        width: 100%;
+    }
+}
+
+/* 新增项目logo样式 */
+.project-logo {
+    display: flex;
+    align-items: center;
+    margin-right: 20px;
+    font-weight: bold;
+    color: #2d3748;
+    cursor: pointer;
+    text-decoration: none;
+    position: relative;
+}
+
+.logo-circle {
+    width: 30px;
+    height: 30px;
+    background: linear-gradient(135deg, #4a6fa5, #6b8cbc);
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    margin-right: 8px;
+}
+
+/* 调整顶部导航栏中的项目logo位置 */
+.top-navbar .project-logo {
+    margin-right: 15px;
+}
+
+.top-navbar .project-logo span {
+    font-size: 18px;
+}
+
+/* 确保主内容区有滚动空间 */
+.main-content {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    overflow: hidden;
+    margin-top: 60px;
+}
+
+.dashboard-content {
+    overflow-y: auto;
+    height: calc(100% - 70px);
+    /* 减去顶部导航栏高度 */
+}
+
+/* 调整侧边栏折叠时的布局 */
+.sidebar.collapsed+.main-content {
+    margin-left: 70px;
+}
+
+/* 顶部导航栏 */
+.top-navbar {
+    background-color: white;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+    padding: 0 20px;
+    height: 60px;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    z-index: 90;
+    /* position: sticky; */
+    position: fixed;
+    top: 0;
+    z-index: 1000;
+    /* 背景色防止透明 */
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    /* 添加阴影增强层次感 */
+}
+
+.navbar-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    padding: 0 20px;
+}
+
+.left-section {
+    display: flex;
+    align-items: center;
+}
+
+.menu-toggle {
+    background: none;
+    border: none;
+    font-size: 20px;
+    color: #4a5568;
+    cursor: pointer;
+    margin-right: 15px;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.menu-toggle:hover {
+    background-color: #f7fafc;
+}
+
+.left-section h1 {
+    font-size: 20px;
+    font-weight: 600;
+    color: #2d3748;
+    margin: 0;
+}
+
+.right-section {
+    display: flex;
+    align-items: center;
+}
+
+.user-dropdown {
+    position: relative;
+}
+
+.user-info {
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    padding: 5px 10px;
+    border-radius: 30px;
+    transition: background-color 0.2s;
+}
+
+.user-info:hover {
+    background-color: #f7fafc;
+}
+
+.user-avatar-text {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #4a6fa5, #6b8cbc);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    font-size: 18px;
+    margin-right: 10px;
+}
+
+.user-info span {
+    font-size: 15px;
+    font-weight: 500;
+    margin-right: 8px;
+}
+
+.dropdown-menu {
+    position: absolute;
+    top: 120%;
+    right: 0;
+    width: 280px;
+    background-color: white;
+    border-radius: 8px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+    padding: 15px 0;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-10px);
+    transition: all 0.3s ease;
+    z-index: 1000;
+}
+
+.dropdown-menu.show {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+}
+
+.dropdown-header {
+    display: flex;
+    align-items: center;
+    padding: 0 20px 15px;
+}
+
+.dropdown-avatar-text {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #4a6fa5, #6b8cbc);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    font-size: 22px;
+    margin-right: 15px;
+}
+
+.dropdown-header h3 {
+    margin: 0;
+    font-size: 16px;
+    font-weight: 600;
+}
+
+.dropdown-header p {
+    margin: 5px 0 0;
+    font-size: 14px;
+    color: #718096;
+}
+
+.dropdown-divider {
+    height: 1px;
+    background-color: #edf2f7;
+    margin: 10px 0;
+}
+
+.dropdown-item {
+    display: flex;
+    align-items: center;
+    padding: 10px 20px;
+    text-decoration: none;
+    color: #4a5568;
+    transition: background-color 0.2s;
+}
+
+.dropdown-item i {
+    width: 24px;
+    margin-right: 12px;
+    font-size: 16px;
+    text-align: center;
+}
+
+.dropdown-item:hover {
+    background-color: #f7fafc;
+}
+
+.dropdown-item.logout {
+    color: #e53e3e;
+}
+
+.dropdown-item.logout:hover {
+    background-color: #fff5f5;
+}
+
+.usage-guide {
+    background-color: white;
+    border-radius: 12px;
+    padding: 25px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+}
+
+.usage-guide h3 {
+    margin-top: 0;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: #2d3748;
+}
+
+.usage-guide h3 i {
+    color: #4a6fa5;
+}
+
+.usage-guide ol {
+    padding-left: 20px;
+    margin-bottom: 25px;
+}
+
+.usage-guide li {
+    margin-bottom: 10px;
+    line-height: 1.6;
+    color: #4a5568;
+}
+
+.note {
+    background-color: #fff5f5;
+    border-left: 4px solid #e53e3e;
+    padding: 15px;
+    border-radius: 0 8px 8px 0;
+}
+
+.note p {
+    margin: 0;
+    color: #718096;
+}
+
+.note strong {
+    color: #e53e3e;
+}
+
+/* 文件预览区域 */
+.file-previews {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+    gap: 15px;
+    margin-top: 20px;
+}
+
+.file-preview {
+    position: relative;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
+    height: 140px;
+}
+
+.file-preview img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.file-preview.pdf-preview {
+    background-color: #f0f7ff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.file-preview.pdf-preview i {
+    font-size: 40px;
+    color: #e74c3c;
+}
+
+.delete-btn {
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background-color: #e53e3e;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    opacity: 0.8;
+    transition: all 0.3s;
+}
+
+.delete-btn:hover {
+    opacity: 1;
+    transform: scale(1.1);
+}
+
+.file-name {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background-color: rgba(0, 0, 0, 0.7);
+    color: white;
+    padding: 5px;
+    font-size: 12px;
+    text-align: center;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* PDF预览容器 */
+.pdf-preview-container {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+}
+
+.pdf-preview-text {
+    font-size: 12px;
+    color: #4a5568;
+    margin-top: 5px;
+    text-align: center;
+}
+/* 进度条样式 */
+.progress-container {
+    margin: 20px 0;
+    background-color: #edf2f7;
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.progress-bar {
+    height: 12px;
+    background-color: #4a6fa5;
+    border-radius: 8px;
+    width: 0%;
+    transition: width 0.3s ease;
+}
+
+.progress-info {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 10px;
+    font-size: 14px;
+    color: #4a5568;
+}
+
+/* 文件预览拖拽样式 */
+.file-preview.dragging {
+    opacity: 0.5;
+    border: 2px dashed #4a6fa5;
+}
+
+.file-preview.over {
+    border: 2px solid #4a6fa5; }

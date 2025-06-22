@@ -18,6 +18,15 @@ from werkzeug.utils import secure_filename
 import yt_dlp
 import logging
 import platform
+import uuid
+from PIL import Image
+import img2pdf
+from pdf2image import convert_from_path
+import tempfile
+import shutil
+import zipfile
+import time
+from PyPDF2 import PdfMerger  # 用于合并PDF
 
 
 from config.config import Config
@@ -80,7 +89,7 @@ class Message(db.Model):
     attachment = db.relationship("Attachment", backref="message", uselist=False)
 
     def to_dict(self):
-        sender = User.query.get(self.sender_id)
+        sender = db.session.get(User, self.sender_id)
         return {
             "id": self.id,
             "sender_id": self.sender_id,
@@ -127,11 +136,10 @@ with app.app_context():
     for username, user_data in INITIAL_USERS.items():
         existing_user = User.query.filter_by(username=username).first()
         if not existing_user:
-            new_user = User(
-                username=username,
-                email=user_data["email"],
-                password=user_data["password"],
-            )
+            new_user = User()
+            new_user.username = username
+            new_user.email = user_data["email"]
+            new_user.password = user_data["password"]
             db.session.add(new_user)
     db.session.commit()
 
@@ -146,9 +154,10 @@ with app.app_context():
 
         if not existing_friendship:
             # 添加好友关系
-            friendship = Friendship(
-                user_id=admin.id, friend_id=zzh.id, status="accepted"
-            )
+            friendship = Friendship()
+            friendship.user_id = admin.id
+            friendship.friend_id = zzh.id
+            friendship.status = "accepted"
             db.session.add(friendship)
             db.session.commit()
 
@@ -184,7 +193,11 @@ def register():
             return jsonify({"success": False, "error": "邮箱已被使用"}), 400
 
         # 创建新用户
-        new_user = User(username=username, email=email, password=password, online=False)
+        new_user = User()
+        new_user.username = username
+        new_user.email = email
+        new_user.password = password
+        new_user.online = False
 
         try:
             db.session.add(new_user)
@@ -266,7 +279,7 @@ def dashboard():
     ).count()
 
     # 获取用户信息
-    user = User.query.get(session["user_id"])
+    user = db.session.get(User, session["user_id"])
     if not user:
         # 如果用户不存在，清除会话并重定向到登录
         session.clear()
@@ -296,7 +309,7 @@ def dashboard():
 def logout():
     # 更新用户在线状态
     if "user_id" in session:
-        user = User.query.get(session["user_id"])
+        user = db.session.get(User, session["user_id"])
         if user:
             user.online = False
             db.session.commit()
@@ -330,7 +343,7 @@ def chat():
         return redirect(url_for("login"))
 
     user_id = session["user_id"]
-    current_user = User.query.get(user_id)
+    current_user = db.session.get(User, user_id)
 
     # 获取联系人列表（好友列表）
     friendships = Friendship.query.filter(
@@ -396,7 +409,7 @@ def chat():
             messages=[],
         )
 
-    current_contact = User.query.get(current_contact_id)
+    current_contact = db.session.get(User, current_contact_id)
 
     # 获取当前联系人的聊天记录
     messages = (
@@ -482,7 +495,7 @@ def add_friend():
 
     # 检查是否是自己
     current_user_id = session["user_id"]
-    current_user = User.query.get(current_user_id)
+    current_user = db.session.get(User, current_user_id)
     if current_user.username == friend_username:
         return jsonify({"success": False, "error": "不能添加自己为好友"}), 400
 
@@ -504,11 +517,10 @@ def add_friend():
         return jsonify({"success": False, "error": "已经是好友"}), 400
 
     # 添加好友关系
-    friendship = Friendship(
-        user_id=current_user_id,
-        friend_id=friend.id,
-        status="accepted",  # 在实际应用中可以是"pending"
-    )
+    friendship = Friendship()
+    friendship.user_id=current_user_id,
+    friendship.friend_id=friend.id,
+    friendship.status="accepted",  # 在实际应用中可以是"pending"
     db.session.add(friendship)
     db.session.commit()
 
@@ -534,11 +546,10 @@ def upload_attachment():
         file.save(filepath)
 
         # 保存附件信息到数据库
-        attachment = Attachment(
-            filename=original_filename,  # 保存原始文件名
-            filepath=filepath,
-            filetype=file.content_type,
-        )
+        attachment = Attachment()
+        attachment.filename=original_filename,  # 保存原始文件名
+        attachment.filepath=filepath,
+        attachment.filetype=file.content_type,
         db.session.add(attachment)
         db.session.commit()
 
@@ -577,7 +588,7 @@ def handle_connect():
     user_id = session.get("user_id")
     if user_id:
         # 更新用户在线状态
-        user = User.query.get(user_id)
+        user = db.session.get(User, user_id)
         if user:
             user.online = True
             db.session.commit()
@@ -595,7 +606,7 @@ def handle_disconnect():
     user_id = session.get("user_id")
     if user_id:
         # 更新用户在线状态
-        user = User.query.get(user_id)
+        user = db.session.get(User, user_id)
         if user:
             user.online = False
             db.session.commit()
@@ -623,12 +634,11 @@ def handle_send_message(data):
         return
 
     # 创建消息对象
-    message = Message(
-        sender_id=user_id,
-        recipient_id=data["recipient_id"],
-        content=data["content"],
-        timestamp=datetime.now(),
-    )
+    message = Message()
+    message.sender_id=user_id,
+    message.recipient_id=data["recipient_id"],
+    message.content=data["content"],
+    message.timestamp=datetime.now(),
 
     # 如果有附件
     if "attachment" in data:
@@ -641,7 +651,7 @@ def handle_send_message(data):
     db.session.commit()
 
     # 获取发送者信息
-    sender = User.query.get(user_id)
+    sender = db.session.get(User, user_id)
     if sender:
         message_data = message.to_dict()
         message_data["sender_username"] = sender.username
@@ -688,7 +698,7 @@ def video_parse():
         return redirect(url_for("login"))
 
     # 获取用户信息
-    user = User.query.get(session["user_id"])
+    user = db.session.get(User, session["user_id"])
     if not user:
         session.clear()
         return redirect(url_for("login"))
@@ -861,11 +871,11 @@ def download_video():
                 # 清理特殊空格字符并确保UTF-8编码
                 def clean_string(s):
                     # 移除ANSI转义序列（颜色代码）
-                    s = re.sub(r'\x1b\[[0-9;]*m', '', s)
+                    s = re.sub(r"\x1b\[[0-9;]*m", "", s)
                     # 替换特殊空格为普通空格
-                    s = s.replace('\xa0', ' ')
+                    s = s.replace("\xa0", " ")
                     # 移除其他非打印字符
-                    return s.encode('utf-8', 'ignore').decode('utf-8').strip()
+                    return s.encode("utf-8", "ignore").decode("utf-8").strip()
 
                 percent = clean_string(d.get("_percent_str", "0%"))
                 speed = clean_string(d.get("_speed_str", "N/A"))
@@ -925,6 +935,516 @@ def download_video():
 def download_video_file(filename):
     video_dir = os.path.join(app.config["UPLOAD_FOLDER"], "videos")
     return send_from_directory(video_dir, filename, as_attachment=True)
+
+
+### 文件格式转换器
+# ================ 文件格式转换器实现 ================
+
+# 配置转换目录
+CONVERT_DIR = os.path.join("uploads", "converted")
+os.makedirs(CONVERT_DIR, exist_ok=True)
+
+
+# 图像模式处理函数
+def handle_special_image_modes(img):
+    """
+    处理所有特殊图像模式，返回处理后的RGB图像
+    支持的模式: RGBA, LA, PA, P, CMYK, 1 (二值), L (灰度)
+    """
+    # 模式映射表
+    mode_handlers = {
+        # 带透明度的模式
+        "RGBA": lambda i: i.convert("RGB"),
+        "LA": lambda i: _convert_la(i),
+        "PA": lambda i: _convert_pa(i),
+        "RGBa": lambda i: i.convert("RGB"),
+        # 不带透明度的特殊模式
+        "P": lambda i: i.convert("RGB"),
+        "CMYK": lambda i: i.convert("RGB"),
+        "1": lambda i: i.convert("L").convert("RGB"),  # 二值图先转灰度再转RGB
+        "L": lambda i: i.convert("RGB"),  # 灰度转RGB
+        "I": lambda i: i.convert("RGB"),  # 32位整数灰度
+        "F": lambda i: i.convert("RGB"),  # 32位浮点灰度
+        # 其他未知模式
+        "default": lambda i: i.convert("RGB"),
+    }
+
+    handler = mode_handlers.get(img.mode, mode_handlers["default"])
+    return handler(img)
+
+
+def _convert_la(img):
+    """转换LA模式(灰度+alpha)为RGB"""
+    # 分离灰度和alpha通道
+    l, a = img.split()
+
+    # 创建白色背景
+    background = Image.new("RGB", img.size, (255, 255, 255))
+
+    # 创建RGB灰度图像
+    rgb_img = Image.merge("RGB", (l, l, l))
+
+    # 应用alpha通道
+    background.paste(rgb_img, mask=a)
+
+    return background
+
+
+def _convert_pa(img):
+    """转换PA模式(调色板+alpha)为RGB"""
+    # 先转换为RGBA
+    rgba_img = img.convert("RGBA")
+
+    # 创建白色背景
+    background = Image.new("RGB", img.size, (255, 255, 255))
+
+    # 应用alpha通道
+    r, g, b, a = rgba_img.split()
+    background.paste(rgba_img, mask=a)
+
+    return background
+
+
+# 图片转PDF函数（处理所有图像模式）
+def convert_image_to_pdf(image_path, output_path, quality=90):
+    try:
+        # 打开图片
+        img = Image.open(image_path)
+
+        # 处理特殊图像模式
+        img = handle_special_image_modes(img)
+
+        # 确保图像是RGB模式
+        if img.mode != "RGB":
+            img = img.convert("RGB")
+
+        # 创建临时JPEG文件
+        temp_jpg = os.path.join(CONVERT_DIR, f"temp_{uuid.uuid4().hex}.jpg")
+        img.save(temp_jpg, "JPEG", quality=quality)
+
+        # 转换为PDF
+        with open(output_path, "wb") as f:
+            f.write(img2pdf.convert(temp_jpg))
+
+        # 删除临时文件
+        os.remove(temp_jpg)
+        return True
+
+    except Exception as e:
+        logging.error(f"图片转PDF错误: {str(e)}", exc_info=True)
+        return False
+
+
+# 文件转换路由（支持进度更新）
+@app.route("/convert_files", methods=["POST"])
+def convert_files():
+    if "files" not in request.files:
+        return jsonify({"success": False, "error": "未选择文件"}), 400
+
+    files = request.files.getlist("files")
+    if len(files) == 0:
+        return jsonify({"success": False, "error": "未选择文件"}), 400
+
+    # 获取转换选项
+    options = request.form.get("options")
+    try:
+        options = json.loads(options) if options else {}
+    except:
+        options = {}
+
+    # 获取任务ID
+    task_id = options.get("task_id", "")
+    
+    logger.info(f"转换任务ID: {task_id}")
+
+    # 创建临时目录
+    temp_dir = tempfile.mkdtemp(dir=CONVERT_DIR)
+    converted_files = []
+    target_format = options.get("targetFormat", "pdf")
+    merge_pdf = options.get("mergePdf", True)
+
+    # 记录开始时间
+    start_time = time.time()
+
+    # 发送进度更新
+    def send_progress(percent, message, eta="--:--"):
+        socketio.emit(
+            "conversion_progress",
+            {"task_id": task_id, "percent": percent, "message": message, "eta": eta},
+            namespace="/",
+        )
+
+    total_files = len(files)
+    processed_files = 0
+
+    # 发送初始进度
+    send_progress(0, "开始转换...")
+    logger.info(f"开始转换 {total_files} 个文件，目标格式: {target_format}")
+
+    # 处理每个文件
+    for idx, file in enumerate(files):
+        if file.filename == "":
+            continue
+
+        # 更新进度
+        processed_files += 1
+        progress = int((processed_files / total_files) * 100)
+        logger.info(f"正在处理文件: {file.filename} ({processed_files}/{total_files}) - 进度: {progress}%")
+
+        # 计算ETA
+        elapsed = time.time() - start_time
+        time_per_file = elapsed / processed_files if processed_files > 0 else 5
+        remaining_time = time_per_file * (total_files - processed_files)
+        minutes = int(remaining_time // 60)
+        seconds = int(remaining_time % 60)
+        eta = f"{minutes:02d}:{seconds:02d}"
+
+        send_progress(
+            progress,
+            f"正在处理文件: {file.filename} ({processed_files}/{total_files})",
+            eta,
+        )
+
+        # 生成唯一文件名
+        original_ext = file.filename.rsplit(".", 1)[1].lower()
+        unique_id = uuid.uuid4().hex
+        original_filename = f"{unique_id}.{original_ext}"
+        original_path = os.path.join(temp_dir, original_filename)
+
+        # 保存原始文件
+        file.save(original_path)
+
+        # 生成目标文件名
+        target_filename = (
+            f"{file.filename.rsplit('.', 1)[0]}_{unique_id}.{target_format}"
+        )
+        target_path = os.path.join(temp_dir, target_filename)
+
+        # 根据文件类型执行转换
+        success = False
+        file_size = 0
+
+        try:
+            # PDF转图片
+            if original_ext == "pdf" and target_format in [
+                "png",
+                "jpg",
+                "jpeg",
+                "bmp",
+                "gif",
+                "tiff",
+                "webp",
+            ]:
+                # 更新进度
+                send_progress(progress, f"转换PDF到图片: {file.filename}")
+
+                # PDF转图片
+                images = convert_from_path(original_path)
+
+                if len(images) > 0:
+                    # 只转换第一页
+                    images[0].save(target_path)
+                    file_size = os.path.getsize(target_path)
+                    converted_files.append(
+                        {
+                            "filename": target_filename,
+                            "file_size": file_size,
+                            "path": target_path,
+                        }
+                    )
+                    success = True
+                else:
+                    success = False
+
+            # 图片转PDF
+            elif (
+                original_ext in ["png", "jpg", "jpeg", "bmp", "gif", "tiff", "webp"]
+                and target_format == "pdf"
+            ):
+                # 更新进度
+                send_progress(progress, f"转换图片到PDF: {file.filename}")
+
+                # 如果是合并PDF，不立即转换，稍后统一处理
+                if merge_pdf:
+                    # 只保存图片路径，稍后合并
+                    converted_files.append(
+                        {
+                            "type": "image",
+                            "path": original_path,
+                            "filename": file.filename,
+                            "target_path": target_path,
+                        }
+                    )
+                    success = True
+                else:
+                    # 单个图片转PDF
+                    success = convert_image_to_pdf(
+                        original_path, target_path, int(options.get("imageQuality", 90))
+                    )
+                    if success:
+                        file_size = os.path.getsize(target_path)
+                        converted_files.append(
+                            {
+                                "filename": target_filename,
+                                "file_size": file_size,
+                                "path": target_path,
+                            }
+                        )
+
+            # 图片格式转换
+            elif original_ext in [
+                "png",
+                "jpg",
+                "jpeg",
+                "bmp",
+                "gif",
+                "tiff",
+                "webp",
+            ] and target_format in ["png", "jpg", "jpeg", "bmp", "gif", "tiff", "webp"]:
+                # 更新进度
+                send_progress(progress, f"转换图片格式: {file.filename}")
+                logger.info(f"转换图片格式: {file.filename} -> {target_format}")
+
+                # 图片格式转换
+                img = Image.open(original_path)
+
+                # 处理特殊图像模式
+                img = handle_special_image_modes(img)
+
+                # 确保目标格式兼容
+                if target_format in ["jpg", "jpeg"] and img.mode != "RGB":
+                    img = img.convert("RGB")
+
+                # 调整质量
+                quality = int(options.get("imageQuality", 90))
+
+                # 调整大小
+                resize_option = options.get("resizeOption", "original")
+                if resize_option == "hd":
+                    img = img.resize((1920, 1080), Image.Resampling.LANCZOS)
+                elif resize_option == "fullhd":
+                    img = img.resize((2560, 1440), Image.Resampling.LANCZOS)
+
+                # 保存为目标格式
+                if target_format in ["jpg", "jpeg"]:
+                    img.save(target_path, "JPEG", quality=quality)
+                else:
+                    img.save(target_path, format=target_format.upper(), quality=quality)
+
+                file_size = os.path.getsize(target_path)
+                converted_files.append(
+                    {
+                        "filename": target_filename,
+                        "file_size": file_size,
+                        "path": target_path,
+                    }
+                )
+                success = True
+
+            # PDF转PDF（不需要转换）
+            elif original_ext == "pdf" and target_format == "pdf":
+                # 直接复制文件
+                shutil.copy(original_path, target_path)
+                file_size = os.path.getsize(target_path)
+                converted_files.append(
+                    {
+                        "filename": target_filename,
+                        "file_size": file_size,
+                        "path": target_path,
+                    }
+                )
+                success = True
+
+            else:
+                success = False
+                logging.warning(
+                    f"不支持从 {original_ext} 到 {target_format} 的转换: {file.filename}"
+                )
+
+            # 对于非合并PDF的单个转换，记录成功
+            if not success:
+                logging.error(f"文件转换失败: {file.filename}")
+
+        except Exception as e:
+            logging.error(f"转换文件 {file.filename} 时出错: {str(e)}", exc_info=True)
+            success = False
+
+        finally:
+            # 清理原始文件（除了需要合并的图片）
+            if not (
+                original_ext in ["png", "jpg", "jpeg", "bmp", "gif", "tiff", "webp"]
+                and target_format == "pdf"
+                and merge_pdf
+            ):
+                try:
+                    os.remove(original_path)
+                except:
+                    pass
+
+    # 处理合并PDF的情况
+    if (
+        merge_pdf
+        and target_format == "pdf"
+        and len([f for f in converted_files if f.get("type") == "image"]) > 0
+    ):
+        try:
+            # 更新进度
+            send_progress(95, "合并PDF文件中...")
+            logger.info("开始合并PDF文件...")
+
+            # 创建合并后的PDF文件
+            merged_filename = f"merged_{uuid.uuid4().hex}.pdf"
+            merged_path = os.path.join(temp_dir, merged_filename)
+
+            # 获取所有需要合并的图片路径
+            image_paths = [
+                item["path"] for item in converted_files if item.get("type") == "image"
+            ]
+
+            # 合并图片到PDF
+            if image_paths:
+                # 创建一个临时PDF列表
+                temp_pdfs = []
+
+                for img_path in image_paths:
+                    # 为每个图片创建PDF
+                    temp_pdf = f"{img_path}.pdf"
+                    if convert_image_to_pdf(
+                        img_path, temp_pdf, int(options.get("imageQuality", 90))
+                    ):
+                        temp_pdfs.append(temp_pdf)
+
+                # 合并所有PDF
+                if temp_pdfs:
+                    merger = PdfMerger()
+
+                    for pdf_path in temp_pdfs:
+                        merger.append(pdf_path)
+
+                    merger.write(merged_path)
+                    merger.close()
+
+                    # 获取文件大小
+                    file_size = os.path.getsize(merged_path)
+
+                    # 添加到转换结果
+                    converted_files = [
+                        {
+                            "filename": merged_filename,
+                            "file_size": file_size,
+                            "path": merged_path,
+                        }
+                    ]
+
+                    # 清理临时PDF
+                    for pdf_path in temp_pdfs:
+                        try:
+                            os.remove(pdf_path)
+                        except:
+                            pass
+                else:
+                    logging.error("没有成功转换的图片用于合并PDF")
+                    return (
+                        jsonify(
+                            {
+                                "success": False,
+                                "error": "合并PDF失败: 没有成功转换的图片",
+                            }
+                        ),
+                        500,
+                    )
+        except Exception as e:
+            logging.error(f"合并PDF时出错: {str(e)}", exc_info=True)
+            return jsonify({"success": False, "error": f"合并PDF失败: {str(e)}"}), 500
+
+    # 如果没有成功转换的文件
+    if len(converted_files) == 0:
+        return jsonify({"success": False, "error": "没有文件成功转换"}), 400
+
+    # 生成下载信息
+    result_files = []
+    for item in converted_files:
+        if "path" in item and os.path.exists(item["path"]):
+            # 生成下载URL
+            download_url = url_for(
+                "download_converted_file",
+                filename=os.path.basename(item["path"]),
+                _external=True,
+            )
+            result_files.append(
+                {
+                    "filename": item["filename"],
+                    "file_size": item.get("file_size", 0),
+                    "download_url": download_url,
+                }
+            )
+
+    # 如果有多个文件，创建ZIP文件
+    zip_url = None
+    if len(result_files) > 1 or (len(result_files) == 1 and merge_pdf):
+        try:
+            # 更新进度
+            send_progress(98, "打包文件中...")
+            logger.info("开始打包转换后的文件...")
+
+            # 创建ZIP文件
+            zip_filename = f"converted_files_{uuid.uuid4().hex}.zip"
+            zip_path = os.path.join(CONVERT_DIR, zip_filename)
+
+            with zipfile.ZipFile(zip_path, "w") as zipf:
+                for file in converted_files:
+                    if "path" in file and os.path.exists(file["path"]):
+                        zipf.write(file["path"], file["filename"])
+
+            zip_url = url_for(
+                "download_converted_file", filename=zip_filename, _external=True
+            )
+        except Exception as e:
+            logging.error(f"创建ZIP文件时出错: {str(e)}", exc_info=True)
+
+    # 返回结果
+    send_progress(100, "转换完成!", "00:00")
+    logger.info("文件转换完成!")
+    return jsonify(
+        {
+            "success": True,
+            "files": result_files,
+            "zip_url": zip_url,
+            "file_count": len(result_files),
+        }
+    )
+
+
+# 下载转换后的文件
+@app.route("/download_converted/<filename>")
+def download_converted_file(filename):
+    return send_from_directory(CONVERT_DIR, filename, as_attachment=True)
+
+
+# 文件转换器页面
+@app.route("/file_converter", methods=["GET"])
+def file_converter():
+    if "logged_in" not in session or not session["logged_in"]:
+        return redirect(url_for("login"))
+
+    # 获取用户信息
+    user = User.query.get(session["user_id"])
+    if not user:
+        session.clear()
+        return redirect(url_for("login"))
+
+    user_info = {
+        "username": session.get("user"),
+        "login_time": session.get("login_time"),
+        "email": user.email,
+    }
+
+    return render_template(
+        "file_converter.html",
+        user_info=user_info,
+        version=Const.VERSION,
+        developer=Const.AUTHOR,
+    )
 
 
 if __name__ == "__main__":

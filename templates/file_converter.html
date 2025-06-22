@@ -1,0 +1,179 @@
+{% extends 'base.html' %}
+
+{% block title %}
+  文件格式转换器
+{% endblock %}
+
+{% block styles %}
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/file_converter.css') }}" />
+{% endblock %}
+
+{% block content %}
+  <div class="dashboard-container">
+    <!-- 主内容区 -->
+    <main class="main-content" id="mainContent">
+      <!-- 顶栏 -->
+      <header class="top-navbar">
+        <div class="navbar-container">
+          <div class="left-section">
+            <div class="project-logo" id="projectLogo">
+              <div class="logo-circle">Z</div>
+              <span>ZZH-Tool</span>
+            </div>
+          </div>
+
+          <div class="right-section">
+            <div class="user-dropdown" id="userDropdown">
+              <div class="user-info" id="userInfo">
+                <div class="user-avatar-text">{{ user_info.username|first|upper }}</div>
+                <span>{{ user_info.username }}</span>
+                <i class="fas fa-chevron-down"></i>
+              </div>
+
+              <div class="dropdown-menu" id="dropdownMenu">
+                <div class="dropdown-header">
+                  <div class="dropdown-avatar-text">{{ user_info.username|first|upper }}</div>
+                  <div>
+                    <h3>{{ user_info.username }}</h3>
+                    <p>{{ user_info.email }}</p>
+                  </div>
+                </div>
+
+                <div class="dropdown-divider"></div>
+
+                <a href="#" class="dropdown-item">
+                  <i class="fas fa-user"></i>
+                  <span>个人资料</span>
+                </a>
+
+                <a href="#" class="dropdown-item">
+                  <i class="fas fa-cog"></i>
+                  <span>账户设置</span>
+                </a>
+
+                <a href="#" class="dropdown-item">
+                  <i class="fas fa-shield-alt"></i>
+                  <span>安全设置</span>
+                </a>
+
+                <div class="dropdown-divider"></div>
+
+                <a href="/logout" class="dropdown-item logout">
+                  <i class="fas fa-sign-out-alt"></i>
+                  <span>退出登录</span>
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <!-- 文件转换内容 -->
+      <div class="dashboard-content">
+        <div class="file-converter-container">
+          <div class="converter-header">
+            <h2><i class="fas fa-file-export"></i> 文件格式转换器</h2>
+            <p>支持 PDF, PNG, JPG, BMP, GIF, TIFF, WEBP 等多种格式互转</p>
+          </div>
+
+          <div class="converter-card">
+            <div class="converter-form">
+              <!-- 更新上传区域 -->
+              <div class="upload-area" id="uploadArea">
+                <div class="upload-placeholder" id="uploadPlaceholder">
+                  <i class="fas fa-cloud-upload-alt"></i>
+                  <h3>拖放文件到此处或点击上传</h3>
+                  <p>支持多个文件，每个最大100MB</p>
+                </div>
+                <input type="file" id="fileInput" accept=".pdf,.png,.jpg,.jpeg,.bmp,.gif,.tiff,.webp" multiple />
+              </div>
+
+              <!-- 添加文件预览区域 -->
+              <div class="file-previews" id="filePreviews"></div>
+
+              <div class="converter-options" id="converterOptions">
+                <div class="option-group">
+                  <label for="targetFormat">转换为格式:</label>
+                  <select id="targetFormat">
+                    <option value="pdf">PDF</option>
+                    <option value="png">PNG</option>
+                    <option value="jpg">JPG</option>
+                    <option value="bmp">BMP</option>
+                    <option value="gif">GIF</option>
+                    <option value="tiff">TIFF</option>
+                    <option value="webp">WEBP</option>
+                  </select>
+                </div>
+
+                <div id="pdfOptions" class="additional-options">
+                  <div class="option">
+                    <input type="checkbox" id="mergePages" checked />
+                    <label id="mergePdf" for="mergePdf">合并所有页面</label>
+                  </div>
+                  <div class="option">
+                    <label for="pdfQuality">PDF质量:</label>
+                    <select id="pdfQuality">
+                      <option value="high">高质量</option>
+                      <option value="medium" selected>中等质量</option>
+                      <option value="low">低质量</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div id="imageOptions" class="additional-options">
+                  <div class="option">
+                    <label for="imageQuality">图像质量:</label>
+                    <input type="range" id="imageQuality" min="50" max="100" value="90" />
+                    <span id="qualityValue">90%</span>
+                  </div>
+                  <div class="option">
+                    <label for="resizeOption">调整大小:</label>
+                    <select id="resizeOption">
+                      <option value="original">原始尺寸</option>
+                      <option value="hd">高清 (1920x1080)</option>
+                      <option value="fullhd">全高清 (2560x1440)</option>
+                      <option value="custom">自定义</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+
+              <div class="action-buttons">
+                <button id="convertBtn" class="btn-convert" disabled><i class="fas fa-exchange-alt"></i> 开始转换</button>
+                <button id="clearBtn" class="btn-clear"><i class="fas fa-trash-alt"></i> 清空</button>
+              </div>
+            </div>
+
+            <div class="converter-result" id="converterResult">
+              <div class="result-placeholder">
+                <div class="placeholder-icon">
+                  <i class="fas fa-file-download"></i>
+                </div>
+                <p>上传文件并选择目标格式后开始转换</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="usage-guide">
+            <h3><i class="fas fa-question-circle"></i> 使用指南</h3>
+            <ol>
+              <li>上传需要转换的文件（PDF或图片格式）</li>
+              <li>选择要转换的目标格式</li>
+              <li>根据需要调整转换选项</li>
+              <li>点击"开始转换"按钮</li>
+              <li>转换完成后下载新格式的文件</li>
+            </ol>
+            <div class="note">
+              <p>
+                <strong>注意：</strong>转换过程中请勿关闭页面。转换后的文件将在24小时后自动删除，请及时下载。
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- JavaScript文件 -->
+  <script src="{{ url_for('static', filename='js/file_converter.js') }}"></script>
+{% endblock %}
