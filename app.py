@@ -956,4 +956,4 @@ if __name__ == "__main__":
         logger.info(f"FFmpeg 路径配置成功: {Const.FFMPEG_PATH}")
 
     if isRunning:
-        socketio.run(app, debug=False, port=8081)
+        socketio.run(app, debug=True, port=8081)
