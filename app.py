@@ -1138,24 +1138,27 @@ def convert_files():
                 # 更新进度
                 send_progress(progress, f"转换PDF到图片: {file.filename}")
 
-                # PDF转图片
+                # PDF转图片 - 转换所有页面
                 images = convert_from_path(original_path)
-
-                if len(images) > 0:
-                    # 只转换第一页
-                    images[0].save(target_path)
-                    file_size = os.path.getsize(target_path)
-                    converted_files.append(
-                        {
-                            "filename": target_filename,
-                            "file_size": file_size,
-                            "path": target_path,
-                        }
-                    )
-                    success = True
-                else:
-                    success = False
-
+                
+                # 创建文件夹存放所有页面
+                pdf_pages_dir = os.path.join(temp_dir, f"{uuid.uuid4().hex}_pages")
+                os.makedirs(pdf_pages_dir, exist_ok=True)
+                
+                # 保存所有页面
+                for i, image in enumerate(images):
+                    page_filename = f"{os.path.splitext(target_filename)[0]}_page{i+1}.{target_format}"
+                    page_path = os.path.join(pdf_pages_dir, page_filename)
+                    image.save(page_path)
+                    
+                    converted_files.append({
+                        "filename": page_filename,
+                        "file_size": os.path.getsize(page_path),
+                        "path": page_path,
+                    })
+                
+                success = True
+                
             # 图片转PDF
             elif (
                 original_ext in ["png", "jpg", "jpeg", "bmp", "gif", "tiff", "webp"]
@@ -1457,11 +1460,9 @@ if __name__ == "__main__":
 
     logger.info(f"当前系统：{platform.system()} {platform.release()}")
 
-    isRunning = True
-
     Const.FFMPEG_PATH, Const.FFPROBE_PATH = cfg.configure_ffmpeg()
     if not Const.FFMPEG_PATH:
-        logger.error(
+        logger.warning(
             """
             ########################################################
             # FFmpeg 未正确配置！请确保：
@@ -1471,9 +1472,26 @@ if __name__ == "__main__":
             ########################################################
             """
         )
-        isRunning = False
     else:
         logger.info(f"FFmpeg 路径配置成功: {Const.FFMPEG_PATH}")
 
-    if isRunning:
-        socketio.run(app, debug=True, port=8081)
+    poppler_path = cfg.install_poppler()
+    if not poppler_path:
+        logger.error(
+            """
+            ########################################################
+            # Poppler 未正确配置！请确保：
+            # 1. 下载 Poppler (https://github.com/oschwartz10612/poppler-windows/releases/download/v23.08.0-0/Release-23.08.0-0.zip)
+            # 2. 解压到项目根目录下的 Poppler 文件夹
+            # 3. 项目结构应为: /Poppler/Library/bin/pdftoppm.exe
+            ########################################################
+            """
+        )
+    else:
+        # 设置pdf2image使用的poppler路径
+        from pdf2image import pdf2image
+
+        pdf2image.poppler_path = poppler_path
+        logger.info(f"已设置 Poppler 路径: {poppler_path}")
+
+    socketio.run(app, debug=True, port=8081)

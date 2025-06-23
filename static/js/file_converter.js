@@ -7,7 +7,6 @@ document.addEventListener('DOMContentLoaded', function () {
     const fileInput = document.getElementById('fileInput');
     const convertBtn = document.getElementById('convertBtn');
     const clearBtn = document.getElementById('clearBtn');
-    const clearAllBtn = document.getElementById('clearAllBtn');
     const targetFormat = document.getElementById('targetFormat');
     const converterResult = document.getElementById('converterResult');
     const pdfOptions = document.getElementById('pdfOptions');
@@ -178,13 +177,13 @@ document.addEventListener('DOMContentLoaded', function () {
         previewContent.className = 'preview-content';
 
         if (file.type === 'application/pdf') {
-            // PDF文件 - 显示PDF图标
+            // PDF文件 - 显示PDF图标和文件名
             previewContent.innerHTML = `
-          <div class="pdf-preview">
-            <i class="fas fa-file-pdf"></i>
-            <span>PDF</span>
-          </div>
-        `;
+                <div class="pdf-preview">
+                    <i class="fas fa-file-pdf"></i>
+                    <div class="pdf-preview-text">${file.name}</div>
+                </div>
+            `;
             preview.appendChild(previewContent);
         } else {
             // 图片文件 - 显示缩略图
@@ -386,8 +385,9 @@ document.addEventListener('DOMContentLoaded', function () {
             </div>
           </div>
         `;
-        } else if (data.download_url) {
-            // 单个文件
+        } else if (data.files && data.files.length > 0) {
+            // 显示第一个文件（合并后的文件）
+            const file = data.files[0];
             converterResult.innerHTML = `
           <div class="conversion-result">
             <div class="result-icon">
@@ -400,13 +400,13 @@ document.addEventListener('DOMContentLoaded', function () {
                 <i class="fas fa-file"></i>
               </div>
               <div>
-                <div class="result-file-name">${data.filename}</div>
-                <div class="result-file-size">${formatFileSize(data.file_size)}</div>
+                <div class="result-file-name">${file.filename}</div>
+                <div class="result-file-size">${formatFileSize(file.file_size)}</div>
               </div>
             </div>
             
             <div class="result-actions">
-              <button class="btn-download" onclick="downloadFile('${data.download_url}', '${data.filename}')" target="_blank">
+              <button class="btn-download" onclick="downloadFile('${file.download_url}', '${file.filename}')" target="_blank">
                 <i class="fas fa-download"></i> 下载文件
               </button>
               <button class="btn-convert-again" onclick="resetConverter()">
@@ -438,7 +438,9 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // 重置转换器
     function resetConverter() {
-        clearAllFiles();
+        // 清空所有文件
+        uploadedFiles = [];
+        filePreviews.innerHTML = '';
 
         // 重置结果区域
         converterResult.innerHTML = `
@@ -449,6 +451,12 @@ document.addEventListener('DOMContentLoaded', function () {
           <p>上传文件并选择目标格式后开始转换</p>
         </div>
       `;
+
+        // 显示上传区域
+        document.getElementById('uploadPlaceholder').style.display = 'block';
+
+        // 禁用转换按钮
+        convertBtn.disabled = true;
     }
 
     // 拖拽排序实现

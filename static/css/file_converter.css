@@ -839,6 +839,7 @@
     margin-top: 5px;
     text-align: center;
 }
+
 /* 进度条样式 */
 .progress-container {
     margin: 20px 0;
@@ -870,4 +871,51 @@
 }
 
 .file-preview.over {
-    border: 2px solid #4a6fa5; }
+    border: 2px solid #4a6fa5;
+}
+
+/* 在文件末尾添加 */
+.pdf-preview-text {
+    font-size: 12px;
+    color: #4a5568;
+    margin-top: 5px;
+    text-align: center;
+    word-break: break-all;
+    max-height: 2.4em;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+}
+
+/* 在文件末尾添加 */
+.pdf-preview {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    padding: 10px;
+    box-sizing: border-box;
+    text-align: center;
+}
+
+.pdf-preview i {
+    font-size: 36px;
+    color: #e74c3c;
+    margin-bottom: 5px;
+}
+
+.pdf-preview-text {
+    font-size: 11px;
+    color: #4a5568;
+    word-break: break-all;
+    max-height: 2.4em;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    line-height: 1.2;
+}

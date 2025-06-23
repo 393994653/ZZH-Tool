@@ -3,19 +3,23 @@ import os
 import secrets
 import platform
 import logging
+import shutil
+import tempfile
 from tqdm import tqdm
 import zipfile
 import requests
+from colorlog import ColoredFormatter
 
 
 logger = logging.getLogger("ZZH-Tool")  # 获取根logger
 
+
 def init():
     global logger
-    
+
     if not os.path.exists("logs"):
         os.makedirs("logs")
-    
+
     # 创建logger
     logger.setLevel(logging.DEBUG)  # 设置最低级别
 
@@ -25,13 +29,21 @@ def init():
 
     # 创建文件处理器
     file_handler = logging.FileHandler(
-        f"logs/{ (str(datetime.now().strftime("%Y%m%d%H%M%S"))) }.log",
-        encoding="utf-8"
+        f"logs/{ (str(datetime.now().strftime("%Y%m%d%H%M%S"))) }.log", encoding="utf-8"
     )
     file_handler.setLevel(logging.DEBUG)  # 文件记录所有级别
 
-    # 定义格式
-    formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
+    formatter = ColoredFormatter(
+        "%(log_color)s%(asctime)s - %(name)s - %(levelname)s - %(message)s%(reset)s",
+        datefmt="%Y-%m-%d %H:%M:%S",
+        log_colors={
+            "DEBUG": "cyan",
+            "INFO": "green",
+            "WARNING": "yellow",
+            "ERROR": "red",
+            "CRITICAL": "red,bg_white",
+        },
+    )
     console_handler.setFormatter(formatter)
     file_handler.setFormatter(formatter)
 
@@ -81,6 +93,7 @@ def configure_ffmpeg():
 
     return ffmpeg_path, ffprobe_path
 
+
 def download_and_extract_ffmpeg():
     """自动下载并解压 FFmpeg"""
     ffmpeg_dir = os.path.join(os.getcwd(), "FFmpeg")
@@ -112,7 +125,7 @@ def download_and_extract_ffmpeg():
             logger.info(f"使用系统代理: {proxies}")
         else:
             proxies = None
-        
+
         # 发送HEAD请求获取文件总大小
         head_response = requests.head(url, allow_redirects=True)
         total_size = int(head_response.headers.get("content-length", 0))
@@ -137,8 +150,8 @@ def download_and_extract_ffmpeg():
     except Exception as e:
         logger.error(f"下载 FFmpeg 失败: {str(e)}，请检查网络连接或手动下载。")
         return False
-    
-    try:                 
+
+    try:
         # 解压文件
         logger.info("解压 FFmpeg...")
         if platform.system() == "Windows":
@@ -167,3 +180,84 @@ def download_and_extract_ffmpeg():
         logger.error(f"解压 FFmpeg 失败: {str(e)}，请前往FFmpeg文件夹手动解压。")
         return False
     return True
+
+
+# 检查并安装Poppler函数
+def install_poppler():
+    if platform.system() == "Windows":
+        # 设置Poppler安装路径为项目根目录下的Poppler文件夹
+        poppler_dir = os.path.join(os.getcwd(), "Poppler")
+        poppler_library = os.path.join(poppler_dir, "Library")
+        poppler_bin = os.path.join(poppler_library, "bin")
+
+        # 检查是否已安装
+        if os.path.exists(poppler_bin):
+            # 设置环境变量
+            os.environ["PATH"] = poppler_bin + os.pathsep + os.environ["PATH"]
+            logger.info(f"Poppler 已找到: {poppler_bin}")
+            return poppler_bin
+
+        try:
+            # 创建Poppler目录
+            os.makedirs(poppler_dir, exist_ok=True)
+
+            # 下载Poppler
+            logger.info("正在下载 Poppler...")
+            url = "https://github.com/oschwartz10612/poppler-windows/releases/download/v23.08.0-0/Release-23.08.0-0.zip"
+            zip_path = os.path.join(tempfile.gettempdir(), "poppler.zip")
+
+            with requests.get(url, stream=True) as r:
+                r.raise_for_status()
+                with open(zip_path, "wb") as f:
+                    for chunk in r.iter_content(chunk_size=8192):
+                        f.write(chunk)
+
+            # 解压文件
+            logger.info("正在解压 Poppler...")
+            with zipfile.ZipFile(zip_path, "r") as zip_ref:
+                # 创建临时解压目录
+                temp_extract_dir = os.path.join(tempfile.gettempdir(), "poppler_temp")
+                os.makedirs(temp_extract_dir, exist_ok=True)
+                zip_ref.extractall(temp_extract_dir)
+
+                # 找到Library文件夹并移动到目标位置
+                release_dir = os.path.join(temp_extract_dir, "Release-23.08.0-0")
+                if os.path.exists(release_dir):
+                    # 移动Library文件夹到Poppler目录
+                    source_library = os.path.join(release_dir, "Library")
+                    if os.path.exists(source_library):
+                        shutil.move(source_library, poppler_dir)
+                        logger.info(f"已将 Library 文件夹移动到: {poppler_dir}")
+                    else:
+                        logger.error("在解压文件中找不到 Library 文件夹")
+                        return None
+                else:
+                    logger.error("在解压文件中找不到 Release-23.08.0-0 文件夹")
+                    return None
+
+                # 清理临时目录
+                shutil.rmtree(temp_extract_dir)
+
+            # 设置环境变量
+            os.environ["PATH"] = poppler_bin + os.pathsep + os.environ["PATH"]
+            logger.info(f"Poppler 已安装到: {poppler_bin}")
+
+            # 清理
+            os.remove(zip_path)
+            return poppler_bin
+        except Exception as e:
+            logger.error(f"安装 Poppler 失败: {str(e)}", exc_info=True)
+            return None
+    else:
+        # 非Windows系统提示手动安装
+        logger.error(
+            """
+        ########################################################
+        # 请在系统上安装 Poppler:
+        # Ubuntu/Debian: sudo apt-get install poppler-utils
+        # CentOS/RHEL: sudo yum install poppler-utils
+        # macOS: brew install poppler
+        ########################################################
+        """
+        )
+        return None
