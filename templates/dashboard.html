@@ -61,12 +61,6 @@
               <span>文件格式转换</span>
             </a>
           </li>
-          <li>
-            <a href="#" class="nav-item">
-              <i class="fas fa-cog"></i>
-              <span>系统设置</span>
-            </a>
-          </li>
         </ul>
       </nav>
 
@@ -92,14 +86,24 @@
         <div class="right-section">
           <div class="user-dropdown" id="userDropdown">
             <div class="user-info" id="userInfo">
-              <div class="user-avatar-text">{{ user_info.username|first|upper }}</div>
+              <!-- 修改这里：根据头像信息显示头像 -->
+              {% if user_info.avatar %}
+                <img src="{{ url_for('get_avatar', filename=user_info.avatar) }}" alt="头像" class="user-avatar-img">
+              {% else %}
+                <div class="user-avatar-text">{{ user_info.username|first|upper }}</div>
+              {% endif %}
               <span>{{ user_info.username }}</span>
               <i class="fas fa-chevron-down"></i>
             </div>
 
             <div class="dropdown-menu" id="dropdownMenu">
               <div class="dropdown-header">
-                <div class="dropdown-avatar-text">{{ user_info.username|first|upper }}</div>
+                <!-- 修改这里：根据头像信息显示头像 -->
+                {% if user_info.avatar %}
+                  <img src="{{ url_for('get_avatar', filename=user_info.avatar) }}" alt="头像" class="dropdown-avatar-img">
+                {% else %}
+                  <div class="dropdown-avatar-text">{{ user_info.username|first|upper }}</div>
+                {% endif %}
                 <div>
                   <h3>{{ user_info.username }}</h3>
                   <p>{{ user_info.email }}</p>
@@ -108,17 +112,17 @@
 
               <div class="dropdown-divider"></div>
 
-              <a href="#" class="dropdown-item">
+              <a href="/profile" class="dropdown-item">
                 <i class="fas fa-user"></i>
                 <span>个人资料</span>
               </a>
 
-              <a href="#" class="dropdown-item">
+              <a href="/account_settings" class="dropdown-item">
                 <i class="fas fa-cog"></i>
                 <span>账户设置</span>
               </a>
 
-              <a href="#" class="dropdown-item">
+              <a href="/security_settings" class="dropdown-item">
                 <i class="fas fa-shield-alt"></i>
                 <span>安全设置</span>
               </a>

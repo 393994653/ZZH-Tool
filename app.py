@@ -40,6 +40,7 @@ app.secret_key = Config.SECRET_KEY
 app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///chat.db"
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 app.config["UPLOAD_FOLDER"] = "uploads"
+app.config["AVATAR_FOLDER"] = "uploads/avatars"  # 添加头像存储路径
 app.config["ALLOWED_EXTENSIONS"] = {
     "txt",
     "pdf",
@@ -50,6 +51,9 @@ app.config["ALLOWED_EXTENSIONS"] = {
     "doc",
     "docx",
 }
+
+# 确保头像文件夹存在
+os.makedirs(app.config["AVATAR_FOLDER"], exist_ok=True)
 
 # 创建数据库和SocketIO
 db = SQLAlchemy(app)
@@ -66,6 +70,8 @@ class User(db.Model):
     email = db.Column(db.String(120), nullable=False)
     password = db.Column(db.String(120), nullable=False)
     online = db.Column(db.Boolean, default=False)
+    avatar = db.Column(db.String(255), nullable=True)  # 添加头像字段
+    signature = db.Column(db.String(255), default=False) # 添加个性签名字段
 
     def to_dict(self):
         return {
@@ -74,6 +80,8 @@ class User(db.Model):
             "username": self.username,
             "email": self.email,
             "online": self.online,
+            "avatar": self.avatar,  # 添加头像信息
+            "signature": self.signature,
         }
 
 
@@ -90,11 +98,17 @@ class Message(db.Model):
 
     def to_dict(self):
         sender = db.session.get(User, self.sender_id)
+        recipient = db.session.get(User, self.recipient_id)
         return {
             "id": self.id,
             "sender_id": self.sender_id,
             "sender_username": sender.username if sender else "未知",
+            "sender_avatar": sender.avatar if sender else None,  # 添加发送者头像
             "recipient_id": self.recipient_id,
+            "recipient_username": recipient.username if recipient else "未知",
+            "recipient_avatar": (
+                recipient.avatar if recipient else None
+            ),  # 添加接收者头像
             "content": self.content,
             "timestamp": self.timestamp.strftime("%Y-%m-%d %H:%M:%S"),
             "read": self.read,
@@ -127,7 +141,11 @@ class Friendship(db.Model):
 
 # 初始用户数据
 INITIAL_USERS = {
-    "admin": {"email": "admin@example.com", "password": "admin123"},
+    "admin": {
+        "email": "admin@example.com",
+        "password": "admin123",
+        "avatar": None,  # 默认头像为None
+    },
 }
 with app.app_context():
     db.create_all()
@@ -140,26 +158,9 @@ with app.app_context():
             new_user.username = username
             new_user.email = user_data["email"]
             new_user.password = user_data["password"]
+            new_user.avatar = user_data["avatar"]  # 设置默认头像
             db.session.add(new_user)
     db.session.commit()
-
-    # 初始化好友关系
-    admin = User.query.filter_by(username="admin").first()
-    zzh = User.query.filter_by(username="ZZH39399").first()
-    if admin and zzh:
-        # 检查是否已存在好友关系
-        existing_friendship = Friendship.query.filter(
-            (Friendship.user_id == admin.id) & (Friendship.friend_id == zzh.id)
-        ).first()
-
-        if not existing_friendship:
-            # 添加好友关系
-            friendship = Friendship()
-            friendship.user_id = admin.id
-            friendship.friend_id = zzh.id
-            friendship.status = "accepted"
-            db.session.add(friendship)
-            db.session.commit()
 
 
 ### 主页、登录、注册
@@ -198,6 +199,7 @@ def register():
         new_user.email = email
         new_user.password = password
         new_user.online = False
+        new_user.avatar = None  # 注册时不设置头像
 
         try:
             db.session.add(new_user)
@@ -230,6 +232,7 @@ def login():
             session["user_id"] = user.id
             session["logged_in"] = True
             session["login_time"] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            session["avatar"] = user.avatar  # 存储头像信息到session
 
             # 更新用户在线状态
             user.online = True
@@ -256,6 +259,98 @@ def login():
         return redirect(url_for("dashboard"))
     return render_template("login.html")
 
+@app.route("/profile", methods=["GET"])
+def profile():
+    if "logged_in" not in session or not session["logged_in"]:
+        return redirect(url_for("login"))
+
+    user = db.session.get(User, session["user_id"])
+    if not user:
+        # 如果用户不存在，清除会话并重定向到登录
+        session.clear()
+        return redirect(url_for("login"))
+
+    user_info = {
+        "username": session.get("user"),
+        "login_time": session.get("login_time"),
+        "email": user.email,
+        "avatar": session.get("avatar"),  # 添加头像信息
+    }
+
+    return render_template(
+        "profile.html",
+        user_info=user_info,
+        game_record_number=0,
+        file_number=0,
+        version=Const.VERSION,
+        developer=Const.AUTHOR,
+        current_date=(
+            datetime.now().strftime("%Y-%m-%d ") + Const.week[datetime.now().weekday()]
+        ),
+    )
+
+
+@app.route("/account_settings", methods=["GET"])
+def account_settings():
+    if "logged_in" not in session or not session["logged_in"]:
+        return redirect(url_for("login"))
+
+    user = db.session.get(User, session["user_id"])
+    if not user:
+        # 如果用户不存在，清除会话并重定向到登录
+        session.clear()
+        return redirect(url_for("login"))
+
+    user_info = {
+        "username": session.get("user"),
+        "login_time": session.get("login_time"),
+        "email": user.email,
+        "avatar": session.get("avatar"),  # 添加头像信息
+    }
+
+    return render_template(
+        "account_settings.html",
+        user_info=user_info,
+        game_record_number=0,
+        file_number=0,
+        version=Const.VERSION,
+        developer=Const.AUTHOR,
+        current_date=(
+            datetime.now().strftime("%Y-%m-%d ") + Const.week[datetime.now().weekday()]
+        ),
+    )
+
+
+@app.route("/security_settings", methods=["GET"])
+def security_settings():
+    if "logged_in" not in session or not session["logged_in"]:
+        return redirect(url_for("login"))
+
+    user = db.session.get(User, session["user_id"])
+    if not user:
+        # 如果用户不存在，清除会话并重定向到登录
+        session.clear()
+        return redirect(url_for("login"))
+
+    user_info = {
+        "username": session.get("user"),
+        "login_time": session.get("login_time"),
+        "email": user.email,
+        "avatar": session.get("avatar"),  # 添加头像信息
+    }
+
+    return render_template(
+        "security_settings.html",
+        user_info=user_info,
+        game_record_number=0,
+        file_number=0,
+        version=Const.VERSION,
+        developer=Const.AUTHOR,
+        current_date=(
+            datetime.now().strftime("%Y-%m-%d ") + Const.week[datetime.now().weekday()]
+        ),
+    )
+
 
 @app.route("/dashboard", methods=["GET"])
 def dashboard():
@@ -268,6 +363,7 @@ def dashboard():
         user = User.query.filter_by(username=session.get("user")).first()
         if user:
             session["user_id"] = user.id
+            session["avatar"] = user.avatar  # 更新session中的头像信息
         else:
             # 如果找不到用户，清除会话并重定向到登录
             session.clear()
@@ -289,6 +385,7 @@ def dashboard():
         "username": session.get("user"),
         "login_time": session.get("login_time"),
         "email": user.email,
+        "avatar": session.get("avatar"),  # 添加头像信息
     }
 
     return render_template(
@@ -391,6 +488,7 @@ def chat():
                 "id": contact.id,
                 "name": contact.username,
                 "online": contact.online,
+                "avatar": contact.avatar,  # 添加联系人头像
                 "last_message": last_message.to_dict() if last_message else None,
                 "unread_count": unread_count,
             }
@@ -439,7 +537,7 @@ def chat():
         "chat.html",
         current_user=current_user.to_dict(),
         contacts=contacts_data,
-        current_contact=current_contact.to_dict(),
+        current_contact=current_contact.to_dict() if current_contact else None,
         messages=[m.to_dict() for m in messages],
         version=Const.VERSION,
         developer=Const.AUTHOR,
@@ -518,9 +616,9 @@ def add_friend():
 
     # 添加好友关系
     friendship = Friendship()
-    friendship.user_id=current_user_id,
-    friendship.friend_id=friend.id,
-    friendship.status="accepted",  # 在实际应用中可以是"pending"
+    friendship.user_id = (current_user_id,)
+    friendship.friend_id = (friend.id,)
+    friendship.status = ("accepted",)  # 在实际应用中可以是"pending"
     db.session.add(friendship)
     db.session.commit()
 
@@ -547,9 +645,9 @@ def upload_attachment():
 
         # 保存附件信息到数据库
         attachment = Attachment()
-        attachment.filename=original_filename,  # 保存原始文件名
-        attachment.filepath=filepath,
-        attachment.filetype=file.content_type,
+        attachment.filename = (original_filename,)  # 保存原始文件名
+        attachment.filepath = (filepath,)
+        attachment.filetype = (file.content_type,)
         db.session.add(attachment)
         db.session.commit()
 
@@ -565,6 +663,57 @@ def upload_attachment():
         )
 
     return jsonify({"success": False, "error": "文件类型不允许"})
+
+
+# 头像上传
+@app.route("/upload_avatar", methods=["POST"])
+def upload_avatar():
+    if "user_id" not in session:
+        return jsonify({"success": False, "error": "未登录"}), 401
+
+    if "avatar" not in request.files:
+        return jsonify({"success": False, "error": "未选择头像文件"}), 400
+
+    file = request.files["avatar"]
+    if file.filename == "":
+        return jsonify({"success": False, "error": "未选择头像文件"}), 400
+
+    # 检查文件类型
+    if file and allowed_file(file.filename):
+        # 获取用户
+        user = db.session.get(User, session["user_id"])
+        if not user:
+            return jsonify({"success": False, "error": "用户不存在"}), 404
+
+        # 生成唯一文件名
+        ext = file.filename.rsplit(".", 1)[1].lower()
+        filename = f"avatar_{user.id}_{uuid.uuid4().hex}.{ext}"
+        filepath = os.path.join(app.config["AVATAR_FOLDER"], filename)
+
+        # 保存文件
+        file.save(filepath)
+
+        # 更新用户头像信息
+        user.avatar = filename
+        db.session.commit()
+
+        # 更新session中的头像信息
+        session["avatar"] = filename
+
+        return jsonify(
+            {
+                "success": True,
+                "avatar_url": url_for("get_avatar", filename=filename, _external=True),
+            }
+        )
+
+    return jsonify({"success": False, "error": "文件类型不允许"}), 400
+
+
+# 获取头像
+@app.route("/avatar/<filename>")
+def get_avatar(filename):
+    return send_from_directory(app.config["AVATAR_FOLDER"], filename)
 
 
 # 文件下载
@@ -635,10 +784,10 @@ def handle_send_message(data):
 
     # 创建消息对象
     message = Message()
-    message.sender_id=user_id,
-    message.recipient_id=data["recipient_id"],
-    message.content=data["content"],
-    message.timestamp=datetime.now(),
+    message.sender_id = (user_id,)
+    message.recipient_id = (data["recipient_id"],)
+    message.content = (data["content"],)
+    message.timestamp = (datetime.now(),)
 
     # 如果有附件
     if "attachment" in data:
@@ -707,6 +856,7 @@ def video_parse():
         "username": session.get("user"),
         "login_time": session.get("login_time"),
         "email": user.email,
+        "avatar": session.get("avatar"),  # 添加头像信息
     }
 
     return render_template(
@@ -1054,7 +1204,7 @@ def convert_files():
 
     # 获取任务ID
     task_id = options.get("task_id", "")
-    
+
     logger.info(f"转换任务ID: {task_id}")
 
     # 创建临时目录
@@ -1089,7 +1239,9 @@ def convert_files():
         # 更新进度
         processed_files += 1
         progress = int((processed_files / total_files) * 100)
-        logger.info(f"正在处理文件: {file.filename} ({processed_files}/{total_files}) - 进度: {progress}%")
+        logger.info(
+            f"正在处理文件: {file.filename} ({processed_files}/{total_files}) - 进度: {progress}%"
+        )
 
         # 计算ETA
         elapsed = time.time() - start_time
@@ -1140,25 +1292,27 @@ def convert_files():
 
                 # PDF转图片 - 转换所有页面
                 images = convert_from_path(original_path)
-                
+
                 # 创建文件夹存放所有页面
                 pdf_pages_dir = os.path.join(temp_dir, f"{uuid.uuid4().hex}_pages")
                 os.makedirs(pdf_pages_dir, exist_ok=True)
-                
+
                 # 保存所有页面
                 for i, image in enumerate(images):
                     page_filename = f"{os.path.splitext(target_filename)[0]}_page{i+1}.{target_format}"
                     page_path = os.path.join(pdf_pages_dir, page_filename)
                     image.save(page_path)
-                    
-                    converted_files.append({
-                        "filename": page_filename,
-                        "file_size": os.path.getsize(page_path),
-                        "path": page_path,
-                    })
-                
+
+                    converted_files.append(
+                        {
+                            "filename": page_filename,
+                            "file_size": os.path.getsize(page_path),
+                            "path": page_path,
+                        }
+                    )
+
                 success = True
-                
+
             # 图片转PDF
             elif (
                 original_ext in ["png", "jpg", "jpeg", "bmp", "gif", "tiff", "webp"]
@@ -1440,6 +1594,7 @@ def file_converter():
         "username": session.get("user"),
         "login_time": session.get("login_time"),
         "email": user.email,
+        "avatar": session.get("avatar"),  # 添加头像信息
     }
 
     return render_template(

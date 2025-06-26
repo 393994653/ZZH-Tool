@@ -719,3 +719,43 @@
     transition: margin-left 0.3s;
     width: 100%;
 }
+
+/* 头像图片样式 */
+.user-avatar-img {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    object-fit: cover;
+    margin-right: 10px;
+}
+
+.dropdown-avatar-img {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    object-fit: cover;
+    margin-right: 15px;
+}
+
+/* 确保文本头像和图片头像大小一致 */
+.user-avatar-text,
+.dropdown-avatar-text {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #4a6fa5, #6b8cbc);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    font-size: 18px;
+    margin-right: 10px;
+}
+
+.dropdown-avatar-text {
+    width: 50px;
+    height: 50px;
+    font-size: 22px;
+    margin-right: 15px;
+}

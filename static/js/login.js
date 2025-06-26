@@ -77,7 +77,7 @@ function showError(message) {
     });
 
     // 清空输入框
-    document.getElementById('username-input').value = '';
+    // document.getElementById('username-input').value = '';
     document.getElementById('password-input').value = '';
     // 重新聚焦到用户名输入框
     document.getElementById('username-input').focus();

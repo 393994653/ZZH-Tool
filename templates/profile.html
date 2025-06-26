@@ -1,0 +1,143 @@
+{% extends 'base.html' %}
+
+{% block title %}
+  个人资料
+{% endblock %}
+
+{% block styles %}
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/profile.css') }}" />
+{% endblock %}
+
+{% block content %}
+  <div class="dashboard-container">
+    <!-- 主内容区 -->
+    <main class="main-content" id="mainContent">
+      <!-- 顶栏 -->
+      <header class="top-navbar">
+        <div class="navbar-container">
+          <div class="left-section">
+            <div class="project-logo" id="projectLogo">
+              <div class="logo-circle">Z</div>
+              <span>ZZH-Tool</span>
+            </div>
+          </div>
+
+          <div class="right-section">
+            <div class="user-dropdown" id="userDropdown">
+              <div class="user-info" id="userInfo">
+                <!-- 修改这里：根据头像信息显示头像 -->
+                {% if user_info.avatar %}
+                  <img src="{{ url_for('get_avatar', filename=user_info.avatar) }}" alt="头像" class="user-avatar-img" />
+                {% else %}
+                  <div class="user-avatar-text">{{ user_info.username|first|upper }}</div>
+                {% endif %}
+                <span>{{ user_info.username }}</span>
+                <i class="fas fa-chevron-down"></i>
+              </div>
+
+              <div class="dropdown-menu" id="dropdownMenu">
+                <div class="dropdown-header">
+                  <!-- 修改这里：根据头像信息显示头像 -->
+                  {% if user_info.avatar %}
+                    <img src="{{ url_for('get_avatar', filename=user_info.avatar) }}" alt="头像" class="dropdown-avatar-img" />
+                  {% else %}
+                    <div class="dropdown-avatar-text">{{ user_info.username|first|upper }}</div>
+                  {% endif %}
+                  <div>
+                    <h3>{{ user_info.username }}</h3>
+                    <p>{{ user_info.email }}</p>
+                  </div>
+                </div>
+
+                <div class="dropdown-divider"></div>
+
+                <a href="/profile" class="dropdown-item">
+                  <i class="fas fa-user"></i>
+                  <span>个人资料</span>
+                </a>
+
+                <a href="/account_settings" class="dropdown-item">
+                  <i class="fas fa-cog"></i>
+                  <span>账户设置</span>
+                </a>
+
+                <a href="/security_settings" class="dropdown-item">
+                  <i class="fas fa-shield-alt"></i>
+                  <span>安全设置</span>
+                </a>
+
+                <div class="dropdown-divider"></div>
+
+                <a href="/logout" class="dropdown-item logout">
+                  <i class="fas fa-sign-out-alt"></i>
+                  <span>退出登录</span>
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <!-- 个人资料内容 -->
+      <div class="dashboard-content">
+        <div class="profile-container">
+          <div class="section-card">
+            <div class="section-header">
+              <i class="fas fa-user-circle"></i>
+              <h2>个人资料</h2>
+            </div>
+
+            <div class="profile-info">
+              <div class="avatar-container">
+                <div class="avatar-large">
+                  <div class="avatar-initials">{{ user_info.username|first|upper }}</div>
+                </div>
+                <div class="avatar-edit" id="avatarEdit">
+                  <i class="fas fa-camera"></i>
+                </div>
+              </div>
+
+              <div class="profile-details">
+                <div class="profile-row">
+                  <div class="profile-label">用户名</div>
+                  <div class="profile-value">{{ user_info.username }}</div>
+                </div>
+                <div class="profile-row">
+                  <div class="profile-label">电子邮箱</div>
+                  <div class="profile-value">{{ user_info.email }}</div>
+                </div>
+                <div class="profile-row">
+                  <div class="profile-label">注册时间</div>
+                  <div class="profile-value">{{ user_info.registration_date }}</div>
+                </div>
+                <div class="profile-row">
+                  <div class="profile-label">最后登录</div>
+                  <div class="profile-value">{{ user_info.last_login }}</div>
+                </div>
+              </div>
+            </div>
+
+            <form id="profileForm">
+              <div class="form-row">
+                <div class="form-group">
+                  <label for="signature">个性签名</label>
+                  <input type="text" id="signature" class="form-control" value="{{ user_info.signature }}" />
+                </div>
+              </div>
+              <div class="form-actions">
+                <button type="reset" class="btn btn-secondary">
+                  <i class="fas fa-times"></i> 取消
+                </button>
+                <button type="submit" class="btn btn-primary">
+                  <i class="fas fa-save"></i> 保存更改
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script src="{{ url_for('static', filename='js/profile.js') }}"></script>
+{% endblock %}
