@@ -3,7 +3,8 @@ class Const:
     AUTHOR = "ZH"
     EMAIL = "393994653@qq.com"
 
-    DEBUG = True
+    DEBUG = False
+    PORT = 39399
 
     week = ["周一", "周二", "周三", "周四", "周五", "周六", "周日"]
     

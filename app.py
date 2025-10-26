@@ -869,4 +869,4 @@ if __name__ == "__main__":
         pdf2image.poppler_path = poppler_path
         logger.info(f"已设置 Poppler 路径: {poppler_path}")
 
-    socketio.run(app, debug=Const.DEBUG, port=8081)
+    socketio.run(app, debug=Const.DEBUG, port=Const.PORT)
