@@ -104,17 +104,26 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // 用户下拉菜单
-    userInfo.addEventListener('click', (e) => {
-        e.stopPropagation();
-        dropdownMenu.classList.toggle('show');
-    });
+    if (userInfo) {
+        userInfo.addEventListener('click', (e) => {
+            e.stopPropagation();
+            dropdownMenu.classList.toggle('show');
+        });
+    }
 
     // 点击其他地方关闭下拉菜单
     document.addEventListener('click', (e) => {
-        if (!userDropdown.contains(e.target)) {
+        if (userDropdown && !userDropdown.contains(e.target)) {
             dropdownMenu.classList.remove('show');
         }
     });
+
+    // 确保主题切换按钮正常工作
+    setTimeout(() => {
+        if (typeof ThemeManager !== 'undefined') {
+            new ThemeManager();
+        }
+    }, 100);
 });
 
 // 窗口大小变化时调整侧边栏

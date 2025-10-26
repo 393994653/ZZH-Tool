@@ -1,3 +1,6 @@
+/* 导入主题变量 */
+@import url('theme.css');
+
 /* 视频解析页面样式 */
 .video-parse-container {
     max-width: 1000px;
@@ -9,14 +12,14 @@
     text-align: center;
     margin-bottom: 30px;
     padding: 20px;
-    background-color: white;
+    background-color: var(--card-bg);
     border-radius: 12px;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+    box-shadow: 0 4px 10px var(--shadow-color);
 }
 
 .parse-header h2 {
     font-size: 28px;
-    color: #2d3748;
+    color: var(--text-primary);
     margin-bottom: 10px;
     display: flex;
     align-items: center;
@@ -25,27 +28,27 @@
 }
 
 .parse-header h2 i {
-    color: #4a6fa5;
+    color: var(--primary-color);
 }
 
 .parse-header p {
-    color: #718096;
+    color: var(--text-secondary);
     font-size: 16px;
     margin: 0;
 }
 
 .parse-card {
-    background-color: white;
+    background-color: var(--card-bg);
     border-radius: 12px;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+    box-shadow: 0 4px 15px var(--shadow-color);
     overflow: hidden;
     margin-bottom: 30px;
 }
 
 .parse-form {
     padding: 25px;
-    background: linear-gradient(135deg, #f8fafc, #edf2f7);
-    border-bottom: 1px solid #e2e8f0;
+    background: var(--bg-tertiary);
+    border-bottom: 1px solid var(--border-color);
 }
 
 .input-group {
@@ -56,20 +59,22 @@
 .input-group input {
     flex: 1;
     padding: 14px 20px;
-    border: 1px solid #e2e8f0;
-    border-radius: 8px 0 0 8px;
+    border: 1px solid var(--border-color);
+    border-radius: 8px 8px 8px 8px;
+    background-color: var(--bg-primary);
+    color: var(--text-primary);
     font-size: 16px;
     outline: none;
     transition: all 0.3s;
 }
 
 .input-group input:focus {
-    border-color: #4a6fa5;
-    box-shadow: 0 0 0 3px rgba(74, 111, 165, 0.1);
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary-color) 20%, transparent);
 }
 
 .btn-parse {
-    background: linear-gradient(135deg, #4a6fa5, #6b8cbc);
+    background: linear-gradient(135deg, var(--primary-color), var(--primary-hover));
     color: white;
     border: none;
     padding: 0 30px;
@@ -84,7 +89,7 @@
 }
 
 .btn-parse:hover {
-    background: linear-gradient(135deg, #3d5d8a, #5a78a5);
+    background: linear-gradient(135deg, var(--primary-hover), color-mix(in srgb, var(--primary-hover) 80%, black));
     transform: translateY(-2px);
 }
 
@@ -100,20 +105,21 @@
 
 .quality-select label {
     font-weight: 500;
-    color: #4a5568;
+    color: var(--text-secondary);
 }
 
 .quality-select select {
     padding: 8px 15px;
-    border: 1px solid #e2e8f0;
+    border: 1px solid var(--border-color);
     border-radius: 6px;
-    background-color: white;
+    background-color: var(--bg-primary);
+    color: var(--text-primary);
     outline: none;
     transition: all 0.3s;
 }
 
 .quality-select select:focus {
-    border-color: #4a6fa5;
+    border-color: var(--primary-color);
 }
 
 .parse-result {
@@ -129,14 +135,14 @@
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    color: #a0aec0;
+    color: var(--text-tertiary);
     text-align: center;
 }
 
 .placeholder-icon {
     font-size: 60px;
     margin-bottom: 20px;
-    color: #cbd5e0;
+    color: var(--text-tertiary);
 }
 
 .video-info {
@@ -149,7 +155,7 @@
     flex: 0 0 300px;
     border-radius: 10px;
     overflow: hidden;
-    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 5px 15px var(--shadow-color);
 }
 
 .video-thumbnail img {
@@ -165,7 +171,7 @@
 .video-title {
     font-size: 22px;
     margin: 0 0 15px;
-    color: #2d3748;
+    color: var(--text-primary);
 }
 
 .video-meta {
@@ -179,16 +185,16 @@
 
 .meta-label {
     font-weight: 500;
-    color: #4a5568;
+    color: var(--text-secondary);
     width: 100px;
 }
 
 .meta-value {
-    color: #718096;
+    color: var(--text-tertiary);
 }
 
 .download-options {
-    background-color: #f8fafc;
+    background-color: var(--bg-secondary);
     border-radius: 10px;
     padding: 20px;
 }
@@ -196,7 +202,7 @@
 .download-options h4 {
     margin-top: 0;
     margin-bottom: 15px;
-    color: #2d3748;
+    color: var(--text-primary);
 }
 
 .option-list {
@@ -206,8 +212,8 @@
 }
 
 .option-item {
-    background-color: white;
-    border: 1px solid #e2e8f0;
+    background-color: var(--bg-primary);
+    border: 1px solid var(--border-color);
     border-radius: 8px;
     padding: 15px;
     display: flex;
@@ -222,17 +228,17 @@
 
 .option-name {
     font-weight: 500;
-    color: #2d3748;
+    color: var(--text-primary);
     margin-bottom: 5px;
 }
 
 .option-meta {
     font-size: 13px;
-    color: #718096;
+    color: var(--text-tertiary);
 }
 
 .download-btn {
-    background: linear-gradient(135deg, #4a6fa5, #6b8cbc);
+    background: linear-gradient(135deg, var(--primary-color), var(--primary-hover));
     color: white;
     border: none;
     padding: 8px 15px;
@@ -246,14 +252,14 @@
 }
 
 .download-btn:hover {
-    background: linear-gradient(135deg, #3d5d8a, #5a78a5);
+    background: linear-gradient(135deg, var(--primary-hover), color-mix(in srgb, var(--primary-hover) 80%, black));
 }
 
 .supported-platforms {
-    background-color: white;
+    background-color: var(--card-bg);
     border-radius: 12px;
     padding: 25px;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+    box-shadow: 0 4px 10px var(--shadow-color);
     margin-bottom: 30px;
 }
 
@@ -261,7 +267,7 @@
     margin-top: 0;
     margin-bottom: 20px;
     text-align: center;
-    color: #2d3748;
+    color: var(--text-primary);
 }
 
 .platform-icons {
@@ -295,7 +301,7 @@
 
 .platform span {
     font-weight: 500;
-    color: #4a5568;
+    color: var(--text-secondary);
 }
 
 .bg-bilibili {
@@ -324,10 +330,10 @@
 }
 
 .usage-guide {
-    background-color: white;
+    background-color: var(--card-bg);
     border-radius: 12px;
     padding: 25px;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+    box-shadow: 0 4px 10px var(--shadow-color);
 }
 
 .usage-guide h3 {
@@ -336,11 +342,11 @@
     display: flex;
     align-items: center;
     gap: 10px;
-    color: #2d3748;
+    color: var(--text-primary);
 }
 
 .usage-guide h3 i {
-    color: #4a6fa5;
+    color: var(--primary-color);
 }
 
 .usage-guide ol {
@@ -351,23 +357,23 @@
 .usage-guide li {
     margin-bottom: 10px;
     line-height: 1.6;
-    color: #4a5568;
+    color: var(--text-secondary);
 }
 
 .note {
-    background-color: #fff5f5;
-    border-left: 4px solid #e53e3e;
+    background-color: color-mix(in srgb, var(--error-color) 10%, var(--bg-primary));
+    border-left: 4px solid var(--error-color);
     padding: 15px;
     border-radius: 0 8px 8px 0;
 }
 
 .note p {
     margin: 0;
-    color: #718096;
+    color: var(--text-secondary);
 }
 
 .note strong {
-    color: #e53e3e;
+    color: var(--error-color);
 }
 
 /* 加载动画 */
@@ -375,9 +381,9 @@
     display: inline-block;
     width: 50px;
     height: 50px;
-    border: 5px solid rgba(74, 111, 165, 0.3);
+    border: 5px solid color-mix(in srgb, var(--primary-color) 30%, transparent);
     border-radius: 50%;
-    border-top: 5px solid #4a6fa5;
+    border-top: 5px solid var(--primary-color);
     animation: spin 1s linear infinite;
     margin: 50px auto;
 }
@@ -394,18 +400,18 @@
 
 .loading-text {
     text-align: center;
-    color: #4a5568;
+    color: var(--text-secondary);
     font-size: 18px;
 }
 
 /* 错误提示 */
 .error-message {
-    background-color: #fff5f5;
-    border: 1px solid #fed7d7;
+    background-color: color-mix(in srgb, var(--error-color) 10%, var(--bg-primary));
+    border: 1px solid color-mix(in srgb, var(--error-color) 30%, transparent);
     border-radius: 8px;
     padding: 20px;
     text-align: center;
-    color: #e53e3e;
+    color: var(--error-color);
     margin: 20px 0;
 }
 
@@ -415,61 +421,34 @@
     display: block;
 }
 
-/* 响应式设计 */
-@media (max-width: 768px) {
-    .video-info {
-        flex-direction: column;
-    }
-
-    .video-thumbnail {
-        flex: 0 0 auto;
-        width: 100%;
-        margin-bottom: 20px;
-    }
-
-    .input-group {
-        flex-direction: column;
-    }
-
-    .input-group input {
-        border-radius: 8px;
-        margin-bottom: 10px;
-    }
-
-    .btn-parse {
-        border-radius: 8px;
-        padding: 12px;
-        justify-content: center;
-    }
-}
-
-/* 添加以下样式 */
+/* 格式选择器 */
 .format-selector {
     display: flex;
     gap: 10px;
     margin-top: 20px;
     align-items: center;
-    background-color: #f8fafc;
+    background-color: var(--bg-secondary);
     padding: 15px;
     border-radius: 8px;
 }
 
 .format-selector label {
     font-weight: 500;
-    color: #4a5568;
+    color: var(--text-secondary);
 }
 
 .format-selector select {
     flex: 1;
     padding: 10px 15px;
-    border: 1px solid #e2e8f0;
+    border: 1px solid var(--border-color);
     border-radius: 6px;
-    background-color: white;
+    background-color: var(--bg-primary);
+    color: var(--text-primary);
     outline: none;
 }
 
 .format-selector button {
-    background: linear-gradient(135deg, #4a6fa5, #6b8cbc);
+    background: linear-gradient(135deg, var(--primary-color), var(--primary-hover));
     color: white;
     border: none;
     padding: 10px 20px;
@@ -483,16 +462,16 @@
 }
 
 .format-selector button:hover {
-    background: linear-gradient(135deg, #3d5d8a, #5a78a5);
+    background: linear-gradient(135deg, var(--primary-hover), color-mix(in srgb, var(--primary-hover) 80%, black));
 }
 
 .success-message {
-    background-color: #f0fff4;
-    border: 1px solid #c6f6d5;
+    background-color: color-mix(in srgb, var(--success-color) 10%, var(--bg-primary));
+    border: 1px solid color-mix(in srgb, var(--success-color) 30%, transparent);
     border-radius: 8px;
     padding: 15px;
     margin-top: 20px;
-    color: #38a169;
+    color: var(--success-color);
     display: flex;
     align-items: center;
     gap: 10px;
@@ -503,7 +482,7 @@
 }
 
 .success-message a {
-    color: #2b6cb0;
+    color: var(--primary-color);
     text-decoration: underline;
 }
 
@@ -516,9 +495,9 @@
     padding: 40px;
 }
 
-/* 添加音频相关样式 */
+/* 音频相关样式 */
 .format-container {
-    background-color: #f8fafc;
+    background-color: var(--bg-secondary);
     border-radius: 10px;
     padding: 20px;
     margin-top: 20px;
@@ -531,7 +510,7 @@
 .format-section h4 {
     margin-top: 0;
     margin-bottom: 10px;
-    color: #2d3748;
+    color: var(--text-primary);
     display: flex;
     align-items: center;
     gap: 8px;
@@ -540,9 +519,10 @@
 .format-selector select {
     width: 100%;
     padding: 12px 15px;
-    border: 1px solid #e2e8f0;
+    border: 1px solid var(--border-color);
     border-radius: 8px;
-    background-color: white;
+    background-color: var(--bg-primary);
+    color: var(--text-primary);
     font-size: 15px;
 }
 
@@ -552,7 +532,7 @@
     justify-content: space-between;
     margin-top: 20px;
     padding-top: 15px;
-    border-top: 1px solid #e2e8f0;
+    border-top: 1px solid var(--border-color);
 }
 
 .option {
@@ -567,22 +547,22 @@
 }
 
 .option label {
-    color: #4a5568;
+    color: var(--text-secondary);
     font-size: 15px;
 }
 
 /* 音频图标样式 */
 .fa-volume-up {
-    color: #38a169;
+    color: var(--success-color);
 }
 
 .fa-volume-mute {
-    color: #e53e3e;
+    color: var(--error-color);
 }
 
 /* 下载按钮样式 */
 .download-btn {
-    background: linear-gradient(135deg, #4a6fa5, #6b8cbc);
+    background: linear-gradient(135deg, var(--primary-color), var(--primary-hover));
     color: white;
     border: none;
     padding: 12px 25px;
@@ -597,9 +577,9 @@
 }
 
 .download-btn:hover {
-    background: linear-gradient(135deg, #3d5d8a, #5a78a5);
+    background: linear-gradient(135deg, var(--primary-hover), color-mix(in srgb, var(--primary-hover) 80%, black));
     transform: translateY(-2px);
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 4px 10px var(--shadow-color);
 }
 
 /* 新增项目logo样式 */
@@ -608,7 +588,7 @@
     align-items: center;
     margin-right: 20px;
     font-weight: bold;
-    color: #2d3748;
+    color: var(--text-primary);
     cursor: pointer;
     text-decoration: none;
     position: relative;
@@ -617,7 +597,7 @@
 .logo-circle {
     width: 30px;
     height: 30px;
-    background: linear-gradient(135deg, #4a6fa5, #6b8cbc);
+    background: linear-gradient(135deg, var(--primary-color), var(--primary-hover));
     color: white;
     border-radius: 50%;
     display: flex;
@@ -648,7 +628,6 @@
 .dashboard-content {
     overflow-y: auto;
     height: calc(100% - 70px);
-    /* 减去顶部导航栏高度 */
 }
 
 /* 调整侧边栏折叠时的布局 */
@@ -658,22 +637,17 @@
 
 /* 顶部导航栏 */
 .top-navbar {
-    background-color: white;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+    background-color: var(--navbar-bg);
+    box-shadow: 0 2px 10px var(--shadow-color);
     padding: 0 20px;
     height: 60px;
     width: 100%;
     display: flex;
     align-items: center;
     justify-content: space-between;
-    z-index: 90;
-    /* position: sticky; */
     position: fixed;
     top: 0;
     z-index: 1000;
-    /* 背景色防止透明 */
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-    /* 添加阴影增强层次感 */
 }
 
 .navbar-container {
@@ -693,7 +667,7 @@
     background: none;
     border: none;
     font-size: 20px;
-    color: #4a5568;
+    color: var(--text-primary);
     cursor: pointer;
     margin-right: 15px;
     width: 40px;
@@ -705,13 +679,13 @@
 }
 
 .menu-toggle:hover {
-    background-color: #f7fafc;
+    background-color: var(--bg-tertiary);
 }
 
 .left-section h1 {
     font-size: 20px;
     font-weight: 600;
-    color: #2d3748;
+    color: var(--text-primary);
     margin: 0;
 }
 
@@ -734,14 +708,14 @@
 }
 
 .user-info:hover {
-    background-color: #f7fafc;
+    background-color: var(--bg-tertiary);
 }
 
 .user-avatar-text {
     width: 40px;
     height: 40px;
     border-radius: 50%;
-    background: linear-gradient(135deg, #4a6fa5, #6b8cbc);
+    background: linear-gradient(135deg, var(--primary-color), var(--primary-hover));
     color: white;
     display: flex;
     align-items: center;
@@ -755,6 +729,7 @@
     font-size: 15px;
     font-weight: 500;
     margin-right: 8px;
+    color: var(--text-primary);
 }
 
 .dropdown-menu {
@@ -762,15 +737,16 @@
     top: 120%;
     right: 0;
     width: 280px;
-    background-color: white;
+    background-color: var(--card-bg);
     border-radius: 8px;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+    box-shadow: 0 10px 30px var(--shadow-color);
     padding: 15px 0;
     opacity: 0;
     visibility: hidden;
     transform: translateY(-10px);
     transition: all 0.3s ease;
     z-index: 1000;
+    border: 1px solid var(--border-color);
 }
 
 .dropdown-menu.show {
@@ -789,7 +765,7 @@
     width: 50px;
     height: 50px;
     border-radius: 50%;
-    background: linear-gradient(135deg, #4a6fa5, #6b8cbc);
+    background: linear-gradient(135deg, var(--primary-color), var(--primary-hover));
     color: white;
     display: flex;
     align-items: center;
@@ -803,17 +779,18 @@
     margin: 0;
     font-size: 16px;
     font-weight: 600;
+    color: var(--text-primary);
 }
 
 .dropdown-header p {
     margin: 5px 0 0;
     font-size: 14px;
-    color: #718096;
+    color: var(--text-secondary);
 }
 
 .dropdown-divider {
     height: 1px;
-    background-color: #edf2f7;
+    background-color: var(--border-color);
     margin: 10px 0;
 }
 
@@ -822,7 +799,7 @@
     align-items: center;
     padding: 10px 20px;
     text-decoration: none;
-    color: #4a5568;
+    color: var(--text-primary);
     transition: background-color 0.2s;
 }
 
@@ -831,16 +808,45 @@
     margin-right: 12px;
     font-size: 16px;
     text-align: center;
+    color: var(--text-secondary);
 }
 
 .dropdown-item:hover {
-    background-color: #f7fafc;
+    background-color: var(--bg-tertiary);
 }
 
 .dropdown-item.logout {
-    color: #e53e3e;
+    color: var(--error-color);
 }
 
 .dropdown-item.logout:hover {
-    background-color: #fff5f5;
+    background-color: color-mix(in srgb, var(--error-color) 10%, transparent);
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+    .video-info {
+        flex-direction: column;
+    }
+
+    .video-thumbnail {
+        flex: 0 0 auto;
+        width: 100%;
+        margin-bottom: 20px;
+    }
+
+    .input-group {
+        flex-direction: column;
+    }
+
+    .input-group input {
+        border-radius: 8px;
+        margin-bottom: 10px;
+    }
+
+    .btn-parse {
+        border-radius: 8px;
+        padding: 12px;
+        justify-content: center;
+    }
 }

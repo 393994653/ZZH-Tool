@@ -6,12 +6,11 @@ ZZH-Tool是一个基于Python Flask开发的多功能Web工具箱，集成了聊
 
 ## 主要功能
 
-- 💬 **在线聊天系统**：实时消息、文件传输、好友管理
-- 🎬 **视频解析工具**：支持Bilibili、抖音、YouTube等平台
-- 📁 **个人网盘**：文件上传下载管理
-- 📚 **在线阅读**：集成在线小说阅读器
-- 🎮 **小游戏合集**：休闲娱乐小游戏
-- 🔧 **文件格式转换**：常用文件格式互转
+- **相册管理工具**：管理你的相册
+- **视频解析工具**：支持Bilibili、抖音、YouTube等平台
+- **个人网盘**：文件上传下载管理
+- **在线阅读**：集成在线小说阅读器
+- **文件格式转换**：常用文件格式互转
 
 ## 技术栈
 
@@ -38,5 +37,5 @@ source .venv/bin/activate  # Linux/macOS
 ### 3.安装依赖并启动服务
 ```bash
 pip install -r requirements.txt
-python app.py
+python app.py --auto-install
 ```

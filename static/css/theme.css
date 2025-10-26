@@ -1,0 +1,198 @@
+/* 主题变量 */
+:root {
+  /* 浅色主题 */
+  --bg-primary: #ffffff;
+  --bg-secondary: #f8fafc;
+  --bg-tertiary: #edf2f7;
+  --text-primary: #2d3748;
+  --text-secondary: #4a5568;
+  --text-tertiary: #718096;
+  --border-color: #e2e8f0;
+  --shadow-color: rgba(0, 0, 0, 0.1);
+  --card-bg: #ffffff;
+  --sidebar-bg: linear-gradient(135deg, #1e3c72, #2a5298);
+  --navbar-bg: #ffffff;
+  --primary-color: #4a6fa5;
+  --primary-hover: #3d5d8a;
+  --success-color: #10b981;
+  --error-color: #e53e3e;
+  --warning-color: #f59e0b;
+}
+
+[data-theme="dark"] {
+  /* 深色主题 */
+  --bg-primary: #1a202c;
+  --bg-secondary: #2d3748;
+  --bg-tertiary: #4a5568;
+  --text-primary: #f7fafc;
+  --text-secondary: #e2e8f0;
+  --text-tertiary: #cbd5e0;
+  --border-color: #4a5568;
+  --shadow-color: rgba(0, 0, 0, 0.3);
+  --card-bg: #2d3748;
+  --sidebar-bg: linear-gradient(135deg, #2d3748, #4a5568);
+  --navbar-bg: #2d3748;
+  --primary-color: #63b3ed;
+  --primary-hover: #4299e1;
+  --success-color: #48bb78;
+  --error-color: #fc8181;
+  --warning-color: #f6e05e;
+}
+
+/* 基础样式应用 */
+body {
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+/* 应用到现有样式 */
+.dashboard-container {
+  background-color: var(--bg-primary);
+}
+
+.sidebar {
+  background: var(--sidebar-bg);
+}
+
+.top-navbar {
+  background-color: var(--navbar-bg);
+  box-shadow: 0 2px 10px var(--shadow-color);
+}
+
+.dashboard-card,
+.parse-card,
+.converter-card,
+.parse-header,
+.converter-header,
+.supported-platforms,
+.usage-guide {
+  background-color: var(--card-bg);
+  box-shadow: 0 4px 10px var(--shadow-color);
+  color: var(--text-primary);
+}
+
+.dashboard-card h3,
+.parse-header h2,
+.converter-header h2,
+.supported-platforms h3,
+.usage-guide h3 {
+  color: var(--text-primary);
+}
+
+.dashboard-card p,
+.parse-header p,
+.converter-header p {
+  color: var(--text-secondary);
+}
+
+.parse-form,
+.converter-form {
+  background: var(--bg-tertiary);
+  border-bottom-color: var(--border-color);
+}
+
+.input-group input,
+.quality-select select,
+.format-selector select,
+.option-group select,
+.option-group input {
+  background-color: var(--bg-primary);
+  border-color: var(--border-color);
+  color: var(--text-primary);
+}
+
+.input-group input:focus,
+.quality-select select:focus,
+.format-selector select:focus {
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary-color) 20%, transparent);
+}
+
+.upload-area {
+  border-color: var(--border-color);
+  background-color: var(--bg-primary);
+}
+
+.upload-area:hover,
+.upload-area.drag-over {
+  border-color: var(--primary-color);
+  background-color: var(--bg-tertiary);
+}
+
+.file-info,
+.converter-options {
+  background-color: var(--bg-primary);
+  box-shadow: 0 2px 6px var(--shadow-color);
+}
+
+.download-options {
+  background-color: var(--bg-tertiary);
+}
+
+.option-item {
+  background-color: var(--bg-primary);
+  border-color: var(--border-color);
+}
+
+.option-name {
+  color: var(--text-primary);
+}
+
+.option-meta {
+  color: var(--text-tertiary);
+}
+
+.note {
+  background-color: var(--bg-tertiary);
+  border-left-color: var(--error-color);
+}
+
+.note p {
+  color: var(--text-secondary);
+}
+
+/* 主题切换按钮 */
+.theme-toggle {
+  background: none;
+  border: none;
+  color: var(--text-primary);
+  font-size: 18px;
+  cursor: pointer;
+  padding: 8px;
+  border-radius: 50%;
+  transition: all 0.3s ease;
+  margin-right: 10px;
+}
+
+.theme-toggle:hover {
+  background-color: var(--bg-tertiary);
+  transform: scale(1.1);
+}
+
+/* 加载动画适配 */
+.loading-spinner {
+  border-color: rgba(74, 111, 165, 0.3);
+  border-top-color: var(--primary-color);
+}
+
+/* 错误消息适配 */
+.error-message {
+  background-color: color-mix(in srgb, var(--error-color) 10%, var(--bg-primary));
+  border-color: color-mix(in srgb, var(--error-color) 30%, transparent);
+  color: var(--error-color);
+}
+
+.success-message {
+  background-color: color-mix(in srgb, var(--success-color) 10%, var(--bg-primary));
+  border-color: color-mix(in srgb, var(--success-color) 30%, transparent);
+  color: var(--success-color);
+}
+
+/* 响应式调整 */
+@media (max-width: 768px) {
+  .theme-toggle {
+    margin-right: 5px;
+    padding: 6px;
+  }
+}

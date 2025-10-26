@@ -64,7 +64,7 @@ class Config:
 
 
 # 配置 FFmpeg 路径
-def configure_ffmpeg():
+def configure_ffmpeg(auto_install = False):
     # 根据操作系统确定可执行文件名
     ffmpeg_exe = "ffmpeg.exe" if platform.system() == "Windows" else "ffmpeg"
     ffprobe_exe = "ffprobe.exe" if platform.system() == "Windows" else "ffprobe"
@@ -77,9 +77,10 @@ def configure_ffmpeg():
     # 检查文件是否存在
     if not os.path.exists(ffmpeg_path):
         logger.error(f"FFmpeg 未找到: {ffmpeg_path}")
-        logger.info("尝试自动下载并安装 FFmpeg...")
-        if download_and_extract_ffmpeg() == False:
-            return None, None
+        if auto_install:
+            logger.info("尝试自动下载并安装 FFmpeg...")
+            if download_and_extract_ffmpeg() == False:
+                return None, None
 
     # 在 Windows 上添加执行权限
     if platform.system() == "Windows":
@@ -183,20 +184,35 @@ def download_and_extract_ffmpeg():
 
 
 # 检查并安装Poppler函数
-def install_poppler():
-    if platform.system() == "Windows":
-        # 设置Poppler安装路径为项目根目录下的Poppler文件夹
-        poppler_dir = os.path.join(os.getcwd(), "Poppler")
-        poppler_library = os.path.join(poppler_dir, "Library")
-        poppler_bin = os.path.join(poppler_library, "bin")
+def install_poppler(auto_install=False):
+    poppler_dir = os.path.join(os.getcwd(), "Poppler")
+    poppler_library = os.path.join(poppler_dir, "Library")
+    poppler_bin = os.path.join(poppler_library, "bin")
 
-        # 检查是否已安装
-        if os.path.exists(poppler_bin):
-            # 设置环境变量
-            os.environ["PATH"] = poppler_bin + os.pathsep + os.environ["PATH"]
-            logger.info(f"Poppler 已找到: {poppler_bin}")
-            return poppler_bin
+    # 检查是否已安装
+    if os.path.exists(poppler_bin):
+        os.environ["PATH"] = poppler_bin + os.pathsep + os.environ["PATH"]
+        logger.info(f"Poppler 已找到: {poppler_bin}")
+        return poppler_bin
 
+    # 非Windows平台的处理
+    if platform.system() != "Windows":
+        logger.error(
+            """
+        ########################################################
+        # 请在系统上安装 Poppler:
+        # Ubuntu/Debian: sudo apt-get install poppler-utils
+        # CentOS/RHEL: sudo yum install poppler-utils
+        # macOS: brew install poppler
+        ########################################################
+        """
+        )
+        return None
+
+    # Windows平台的自动安装逻辑
+    if auto_install:
+        temp_extract_dir = None
+        zip_path = None
         try:
             # 创建Poppler目录
             os.makedirs(poppler_dir, exist_ok=True)
@@ -214,50 +230,45 @@ def install_poppler():
 
             # 解压文件
             logger.info("正在解压 Poppler...")
+            temp_extract_dir = os.path.join(tempfile.gettempdir(), "poppler_temp")
+            os.makedirs(temp_extract_dir, exist_ok=True)
+            
             with zipfile.ZipFile(zip_path, "r") as zip_ref:
-                # 创建临时解压目录
-                temp_extract_dir = os.path.join(tempfile.gettempdir(), "poppler_temp")
-                os.makedirs(temp_extract_dir, exist_ok=True)
                 zip_ref.extractall(temp_extract_dir)
 
-                # 找到Library文件夹并移动到目标位置
-                release_dir = os.path.join(temp_extract_dir, "Release-23.08.0-0")
-                if os.path.exists(release_dir):
-                    # 移动Library文件夹到Poppler目录
-                    source_library = os.path.join(release_dir, "Library")
-                    if os.path.exists(source_library):
-                        shutil.move(source_library, poppler_dir)
-                        logger.info(f"已将 Library 文件夹移动到: {poppler_dir}")
-                    else:
-                        logger.error("在解压文件中找不到 Library 文件夹")
-                        return None
+            # 找到Library文件夹并移动到目标位置
+            release_dir = os.path.join(temp_extract_dir, "Release-23.08.0-0")
+            if os.path.exists(release_dir):
+                source_library = os.path.join(release_dir, "Library")
+                if os.path.exists(source_library):
+                    shutil.move(source_library, poppler_dir)
+                    logger.info(f"已将 Library 文件夹移动到: {poppler_dir}")
                 else:
-                    logger.error("在解压文件中找不到 Release-23.08.0-0 文件夹")
+                    logger.error("在解压文件中找不到 Library 文件夹")
                     return None
-
-                # 清理临时目录
-                shutil.rmtree(temp_extract_dir)
+            else:
+                logger.error("在解压文件中找不到 Release-23.08.0-0 文件夹")
+                return None
 
             # 设置环境变量
             os.environ["PATH"] = poppler_bin + os.pathsep + os.environ["PATH"]
             logger.info(f"Poppler 已安装到: {poppler_bin}")
-
-            # 清理
-            os.remove(zip_path)
             return poppler_bin
+
         except Exception as e:
             logger.error(f"安装 Poppler 失败: {str(e)}", exc_info=True)
             return None
-    else:
-        # 非Windows系统提示手动安装
-        logger.error(
-            """
-        ########################################################
-        # 请在系统上安装 Poppler:
-        # Ubuntu/Debian: sudo apt-get install poppler-utils
-        # CentOS/RHEL: sudo yum install poppler-utils
-        # macOS: brew install poppler
-        ########################################################
-        """
-        )
-        return None
+        finally:
+            # 清理临时文件
+            try:
+                if zip_path and os.path.exists(zip_path):
+                    os.remove(zip_path)
+            except:
+                pass
+            try:
+                if temp_extract_dir and os.path.exists(temp_extract_dir):
+                    shutil.rmtree(temp_extract_dir)
+            except:
+                pass
+
+    return None

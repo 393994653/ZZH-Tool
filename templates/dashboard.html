@@ -1,248 +1,163 @@
 {% extends 'base.html' %}
 
 {% block title %}
-  网址导航
+网址导航
 {% endblock %}
 
 {% block styles %}
-  <link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}" />
+<link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}" />
 {% endblock %}
 
 {% block content %}
-  <div class="dashboard-container">
-    <!-- 侧边栏 -->
-    <aside class="sidebar" id="sidebar">
-      <div class="sidebar-header">
-        <div class="logo">Z</div>
-        <h2>ZZH-Tool</h2>
+<div class="dashboard-container">
+  <!-- 侧边栏 -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <div class="logo">Z</div>
+      <h2>ZZH-Tool</h2>
+    </div>
+
+    <nav class="sidebar-nav">
+      <ul>
+        <li>
+          <a href="/dashboard" class="nav-item">
+            <i class="fas fa-home"></i>
+            <span>仪表盘首页</span>
+          </a>
+        </li>
+        <li>
+          <a href="http://zhenghao.x3322.net:32283" class="nav-item">
+            <i class="fa-regular fa-images"></i>
+            <span>相册管理</span>
+          </a>
+        </li>
+        <li>
+          <a href="http://zhenghao.x3322.net:32507" class="nav-item">
+            <i class="fas fa-cloud"></i>
+            <span>个人网盘</span>
+          </a>
+        </li>
+        <li>
+          <a href="http://zhenghao.x3322.net:38083" class="nav-item">
+            <i class="fas fa-chart-bar"></i>
+            <span>在线阅读</span>
+          </a>
+        </li>
+        <li>
+          <a href="/video_parse" class="nav-item">
+            <i class="fas fa-video"></i>
+            <span>B站视频解析</span>
+          </a>
+        </li>
+        <li>
+          <a href="/file_converter" class="nav-item">
+            <i class="fas fa-file-contract"></i>
+            <span>文件格式转换</span>
+          </a>
+        </li>
+      </ul>
+    </nav>
+
+    <div class="sidebar-footer">
+      <p>当前版本: {{ version }}</p>
+      <p>开发者: {{ developer }}</p>
+      <p>联系QQ: 393994653</p>
+      <p>Github仓库: <a href="https://github.com/393994653/ZZH-Tool">ZZH-Tool</a></p>
+      <p> &copy; 2025 开发者仪表盘</p>
+    </div>
+  </aside>
+
+  <!-- 主内容区 -->
+  <main class="main-content" id="mainContent">
+    <!-- 顶部导航栏 -->
+    <header class="top-navbar">
+      <div class="left-section">
+        <button class="sidebar-toggle" id="headerToggleBtn">
+          <i class="fas fa-chevron-left"></i>
+        </button>
+        <h1>仪表盘</h1>
       </div>
 
-      <nav class="sidebar-nav">
-        <ul>
-          <li>
-            <a href="#" class="nav-item">
-              <i class="fas fa-home"></i>
-              <span>仪表盘首页</span>
-            </a>
-          </li>
-          <li>
-            <a href="#" class="nav-item">
-              <i class="fas fa-cloud"></i>
-              <span>个人网盘</span>
-            </a>
-          </li>
-          <li>
-            <a href="http://zhenghao.x3322.net:38083" class="nav-item">
-              <i class="fas fa-chart-bar"></i>
-              <span>在线阅读</span>
-            </a>
-          </li>
-          <li>
-            <a href="/chat" class="nav-item">
-              <i class="fas fa-comments"></i>
-              <span>在线聊天</span>
-            </a>
-          </li>
-          <li>
-            <a href="/video_parse" class="nav-item">
-              <i class="fas fa-video"></i>
-              <span>B站视频解析</span>
-            </a>
-          </li>
-          <li>
-            <a href="#" class="nav-item">
-              <i class="fas fa-gamepad"></i>
-              <span>小游戏合集</span>
-            </a>
-          </li>
-          <li>
-            <a href="/file_converter" class="nav-item">
-              <i class="fas fa-file-contract"></i>
-              <span>文件格式转换</span>
-            </a>
-          </li>
-        </ul>
-      </nav>
-
-      <div class="sidebar-footer">
-        <p>当前版本: {{ version }}</p>
-        <p>开发者: {{ developer }}</p>
-        <p>联系QQ: 393994653</p>
-        <p>Github仓库: <a href="https://github.com/393994653/ZZH-Tool">ZZH-Tool</a></p>
-        <p> &copy; 2025 开发者仪表盘</p>
-      </div>
-    </aside>
-
-    <!-- 主内容区 -->
-    <main class="main-content" id="mainContent">
-      <!-- 顶部导航栏 -->
-      <header class="top-navbar">
-        <div class="left-section">
-          <button class="sidebar-toggle" id="headerToggleBtn">
-            <i class="fas fa-chevron-left"></i>
-          </button>
-          <h1>仪表盘</h1>
-        </div>
-
-        <div class="right-section">
-          <div class="user-dropdown" id="userDropdown">
-            <div class="user-info" id="userInfo">
-              <!-- 修改这里：根据头像信息显示头像 -->
-              {% if user_info.avatar %}
-                <img src="{{ url_for('get_avatar', filename=user_info.avatar) }}" alt="头像" class="user-avatar-img">
-              {% else %}
-                <div class="user-avatar-text">{{ user_info.username|first|upper }}</div>
-              {% endif %}
-              <span>{{ user_info.username }}</span>
-              <i class="fas fa-chevron-down"></i>
-            </div>
-
-            <div class="dropdown-menu" id="dropdownMenu">
-              <div class="dropdown-header">
-                <!-- 修改这里：根据头像信息显示头像 -->
-                {% if user_info.avatar %}
-                  <img src="{{ url_for('get_avatar', filename=user_info.avatar) }}" alt="头像" class="dropdown-avatar-img">
-                {% else %}
-                  <div class="dropdown-avatar-text">{{ user_info.username|first|upper }}</div>
-                {% endif %}
-                <div>
-                  <h3>{{ user_info.username }}</h3>
-                  <p>{{ user_info.email }}</p>
-                </div>
-              </div>
-
-              <div class="dropdown-divider"></div>
-
-              <a href="/profile" class="dropdown-item">
-                <i class="fas fa-user"></i>
-                <span>个人资料</span>
-              </a>
-
-              <a href="/account_settings" class="dropdown-item">
-                <i class="fas fa-cog"></i>
-                <span>账户设置</span>
-              </a>
-
-              <a href="/security_settings" class="dropdown-item">
-                <i class="fas fa-shield-alt"></i>
-                <span>安全设置</span>
-              </a>
-
-              <div class="dropdown-divider"></div>
-
-              <a href="/logout" class="dropdown-item logout">
-                <i class="fas fa-sign-out-alt"></i>
-                <span>退出登录</span>
-              </a>
-            </div>
-          </div>
-        </div>
-      </header>
-
-      <!-- 仪表盘内容 -->
-      <div class="dashboard-content">
-        <div class="welcome-card">
-          <div class="welcome-text">
-            <h2>欢迎回来, {{ user_info.username }}!</h2>
-            <p>今天是 {{ current_date }}</p>
-            <div class="quick-stats">
-              <div class="stat-item">
-                <div class="stat-icon">📁</div>
-                <div>
-                  <p>文件数量</p>
-                  <strong>{{ file_number }}</strong>
-                </div>
-              </div>
-              <div class="stat-item">
-                <div class="stat-icon">💬</div>
-                <div>
-                  <p>未读消息</p>
-                  <strong>{{ unread_number }}</strong>
-                </div>
-              </div>
-              <div class="stat-item">
-                <div class="stat-icon">🎮</div>
-                <div>
-                  <p>游戏记录</p>
-                  <strong>{{ game_record_number }}</strong>
-                </div>
-              </div>
-            </div>
-          </div>
-          <div class="welcome-image">
-            <img src="https://img.freepik.com/free-vector/dashboard-analytics-concept-illustration_114360-745.jpg" alt="欢迎图片" />
-          </div>
-        </div>
-
-        <!-- 功能卡片 -->
-        <div class="dashboard-grid">
-          <div class="dashboard-card">
-            <div class="card-icon bg-blue-100">
-              <div class="text-icon">P</div>
-            </div>
-            <h3>个人网盘</h3>
-            <p>存储和管理您的所有文件</p>
-            <a href="#" class="card-link">访问网盘</a>
-          </div>
-
-          <div class="dashboard-card">
-            <div class="card-icon bg-green-100">
-              <div class="text-icon">R</div>
-            </div>
-            <h3>在线阅读</h3>
-            <p>在无聊时阅读一些小说</p>
-            <a href="http://zhenghao.x3322.net:38083" class="card-link">开始阅读</a>
-          </div>
-
-          <div class="dashboard-card">
-            <div class="card-icon bg-green-100">
-              <div class="text-icon">C</div>
-            </div>
-            <h3>在线聊天</h3>
-            <p>与朋友和同事实时交流</p>
-            <a href="/chat" class="card-link">开始聊天</a>
-          </div>
-
-          <div class="dashboard-card">
-            <div class="card-icon bg-purple-100">
-              <div class="text-icon">B</div>
-            </div>
-            <h3>B站视频解析</h3>
-            <p>解析和下载B站视频</p>
-            <a href="/video_parse" class="card-link">使用工具</a>
-          </div>
-
-          <div class="dashboard-card">
-            <div class="card-icon bg-yellow-100">
-              <div class="text-icon">G</div>
-            </div>
-            <h3>小游戏合集</h3>
-            <p>放松一下，玩点小游戏</p>
-            <a href="#" class="card-link">开始游戏</a>
-          </div>
-
-          <div class="dashboard-card">
-            <div class="card-icon bg-red-100">
-              <div class="text-icon">T</div>
-            </div>
-            <h3>文件转换</h3>
-            <p>转换不同格式的文件</p>
-            <a href="/file_converter" class="card-link">转换文件</a>
-          </div>
-
-          <div class="dashboard-card">
-            <div class="card-icon bg-indigo-100">
-              <div class="text-icon">S</div>
-            </div>
-            <h3>使用统计</h3>
-            <p>查看您的使用情况数据</p>
-            <a href="#" class="card-link">查看统计</a>
-          </div>
+      <div class="right-section">
+        <!-- 主题切换按钮将由JavaScript自动添加 -->
+        <div class="user-info">
+          {% if user_info.avatar %}
+          <img src="{{ url_for('get_avatar', filename=user_info.avatar) }}" alt="头像" class="user-avatar-img">
+          {% else %}
+          <div class="user-avatar-text">{{ user_info.username|first|upper }}</div>
+          {% endif %}
+          <span>{{ user_info.username }}</span>
         </div>
       </div>
-    </main>
-  </div>
+    </header>
 
-  <!-- JavaScript文件 -->
-  <script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
+    <!-- 仪表盘内容 -->
+    <div class="dashboard-content">
+      <div class="welcome-card">
+        <div class="welcome-text">
+          <h2>欢迎使用 ZZH-Tool!</h2>
+          <p>今天是 {{ current_date }}</p>
+          <p>这是一个强大的工具集，帮助您更高效地工作和娱乐。</p>
+        </div>
+        <div class="welcome-image">
+          <img src="https://img.freepik.com/free-vector/dashboard-analytics-concept-illustration_114360-745.jpg"
+            alt="欢迎图片" />
+        </div>
+      </div>
+
+      <div class="dashboard-grid">
+
+        <div class="dashboard-card">
+          <div class="card-icon bg-yellow-100">
+            <div class="text-icon">A</div>
+          </div>
+          <h3>相册管理</h3>
+          <p>存储和管理您的所有照片</p>
+          <a href="http://zhenghao.x3322.net:32283" class="card-link">访问相册</a>
+        </div>
+
+        <div class="dashboard-card">
+          <div class="card-icon bg-blue-100">
+            <div class="text-icon">P</div>
+          </div>
+          <h3>个人网盘</h3>
+          <p>存储和管理您的所有文件</p>
+          <a href="http://zhenghao.x3322.net:32507" class="card-link">访问网盘</a>
+        </div>
+
+
+        <div class="dashboard-card">
+          <div class="card-icon bg-green-100">
+            <div class="text-icon">R</div>
+          </div>
+          <h3>在线阅读</h3>
+          <p>在无聊时阅读一些小说</p>
+          <a href="http://zhenghao.x3322.net:38083" class="card-link">开始阅读</a>
+        </div>
+
+        <div class="dashboard-card">
+          <div class="card-icon bg-purple-100">
+            <div class="text-icon">B</div>
+          </div>
+          <h3>B站视频解析</h3>
+          <p>解析和下载B站视频</p>
+          <a href="/video_parse" class="card-link">使用工具</a>
+        </div>
+
+        <div class="dashboard-card">
+          <div class="card-icon bg-red-100">
+            <div class="text-icon">C</div>
+          </div>
+          <h3>文件转换</h3>
+          <p>转换不同格式的文件</p>
+          <a href="/file_converter" class="card-link">转换文件</a>
+        </div>
+
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- JavaScript文件 -->
+<script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
 {% endblock %}
