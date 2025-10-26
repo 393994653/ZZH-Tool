@@ -856,7 +856,7 @@ if __name__ == "__main__":
             """
             ########################################################
             # Poppler 未正确配置！请确保：
-            # 1. 下载 Poppler (https://github.com/oschwartz10612/poppler-windows/releases/download/v23.08.0-0/Release-23.08.0-0.zip)
+            # 1. 下载 Poppler (https://github.com/oschwartz10612/poppler-windows/releases/download/v25.07.0-0/Release-25.07.0-0.zip)
             # 2. 解压到项目根目录下的 Poppler 文件夹
             # 3. 项目结构应为: /Poppler/Library/bin/pdftoppm.exe
             ########################################################

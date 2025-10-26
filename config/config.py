@@ -219,7 +219,7 @@ def install_poppler(auto_install=False):
 
             # 下载Poppler
             logger.info("正在下载 Poppler...")
-            url = "https://github.com/oschwartz10612/poppler-windows/releases/download/v23.08.0-0/Release-23.08.0-0.zip"
+            url = "https://github.com/oschwartz10612/poppler-windows/releases/download/v25.07.0-0/Release-25.07.0-0.zip"
             zip_path = os.path.join(tempfile.gettempdir(), "poppler.zip")
 
             with requests.get(url, stream=True) as r:
