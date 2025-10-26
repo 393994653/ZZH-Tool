@@ -7,6 +7,11 @@
     <title>
       {% block title %}{% endblock %} - ZZH-Tool
     </title>
+    <!-- Favicon 图标 -->
+    <link rel="icon" type="image/svg+xml" href="{{ url_for('static', filename='images/favicon.svg') }}">
+    <link rel="apple-touch-icon" href="{{ url_for('static', filename='images/favicon.svg') }}">
+    <link rel="shortcut icon" href="{{ url_for('static', filename='images/favicon.svg') }}">
+
     <!-- 引入Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- 引入 Font Awesome 6 -->

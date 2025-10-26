@@ -1,5 +1,5 @@
 class Const:
-    VERSION = "1.2.0"
+    VERSION = "V2.0.0"
     AUTHOR = "ZH"
     EMAIL = "393994653@qq.com"
 
