@@ -5,6 +5,6 @@ class Const:
 
     DEBUG = True
 
-    week = ["周日", "周一", "周二", "周三", "周四", "周五", "周六"]
+    week = ["周一", "周二", "周三", "周四", "周五", "周六", "周日"]
     
     FFMPEG_PATH, FFPROBE_PATH = None, None
