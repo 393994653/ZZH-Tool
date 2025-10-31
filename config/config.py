@@ -77,10 +77,8 @@ def configure_ffmpeg(auto_install = False):
     # 检查文件是否存在
     if not os.path.exists(ffmpeg_path):
         logger.error(f"FFmpeg 未找到: {ffmpeg_path}")
-        if auto_install:
-            logger.info("尝试自动下载并安装 FFmpeg...")
-            if download_and_extract_ffmpeg(auto_install) == False:
-                return None, None
+        if download_and_extract_ffmpeg(auto_install) == False:
+            return None, None
 
     # 在 Windows 上添加执行权限
     if platform.system() == "Windows":

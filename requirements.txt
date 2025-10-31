@@ -89,4 +89,3 @@ wrapt==1.17.2
 wsproto==1.2.0
 yarg==0.1.9
 yt-dlp==2025.6.9
-pywin32==310
