@@ -79,7 +79,7 @@ def configure_ffmpeg(auto_install = False):
         logger.error(f"FFmpeg 未找到: {ffmpeg_path}")
         if auto_install:
             logger.info("尝试自动下载并安装 FFmpeg...")
-            if download_and_extract_ffmpeg() == False:
+            if download_and_extract_ffmpeg(auto_install) == False:
                 return None, None
 
     # 在 Windows 上添加执行权限
@@ -95,7 +95,7 @@ def configure_ffmpeg(auto_install = False):
     return ffmpeg_path, ffprobe_path
 
 
-def download_and_extract_ffmpeg():
+def download_and_extract_ffmpeg(auto_install=False):
     """自动下载并解压 FFmpeg"""
     ffmpeg_dir = os.path.join(os.getcwd(), "FFmpeg")
 
@@ -109,82 +109,111 @@ def download_and_extract_ffmpeg():
     if platform.system() == "Windows":
         url = "https://www.gyan.dev/ffmpeg/builds/ffmpeg-release-full.7z"
         download_path = os.path.join(ffmpeg_dir, "ffmpeg.7z")
+        try:
+            # 如果有系统代理则设置系统代理
+            proxies = {}
+            http_proxy = os.environ.get("http_proxy") or os.environ.get("HTTP_PROXY")
+            https_proxy = os.environ.get("https_proxy") or os.environ.get("HTTPS_PROXY")
+            if http_proxy:
+                proxies["http"] = http_proxy
+            if https_proxy:
+                proxies["https"] = https_proxy
+            if proxies:
+                logger.info(f"使用系统代理: {proxies}")
+            else:
+                proxies = None
+
+            # 发送HEAD请求获取文件总大小
+            head_response = requests.head(url, allow_redirects=True)
+            total_size = int(head_response.headers.get("content-length", 0))
+
+            # 发送GET请求开始下载
+            response = requests.get(url, stream=True, proxies=proxies)
+
+            # 使用tqdm创建进度条
+            with tqdm(
+                total=total_size,
+                unit="B",
+                unit_scale=True,
+                desc="下载进度",
+                bar_format="{l_bar}{bar}| {n_fmt}/{total_fmt} [{elapsed}<{remaining}, {rate_fmt}]",
+            ) as pbar:
+                with open(download_path, "wb") as f:
+                    for chunk in response.iter_content(chunk_size=8192):
+                        if chunk:
+                            f.write(chunk)
+                            # 更新进度条
+                            pbar.update(len(chunk))
+        except Exception as e:
+            logger.error(f"下载 FFmpeg 失败: {str(e)}，请检查网络连接或手动下载。")
+            return False
+
+        try:
+            # 解压文件
+            logger.info("解压 FFmpeg...")
+            if platform.system() == "Windows":
+                # 使用 7-Zip 解压
+                try:
+                    import py7zr
+
+                    with py7zr.SevenZipFile(download_path, mode="r") as z:
+                        z.extractall(path=ffmpeg_dir)
+                except ImportError:
+                    logger.error("请安装 py7zr 库: pip install py7zr")
+                    os.remove(download_path)
+                    return
+            else:
+                # 使用 tar 解压
+                import tarfile
+
+                with tarfile.open(download_path) as tar:
+                    tar.extractall(path=ffmpeg_dir)
+
+            # 清理下载文件
+            os.remove(download_path)
+            logger.info("FFmpeg 安装完成！")
+
+        except Exception as e:
+            logger.error(f"解压 FFmpeg 失败: {str(e)}，请前往FFmpeg文件夹手动解压。")
+            return False
+        return True
     else:  # Linux/macOS
-        url = "https://johnvansickle.com/ffmpeg/releases/ffmpeg-release-amd64-static.tar.xz"
-        download_path = os.path.join(ffmpeg_dir, "ffmpeg.tar.xz")
-
-    try:
-        # 如果有系统代理则设置系统代理
-        proxies = {}
-        http_proxy = os.environ.get("http_proxy") or os.environ.get("HTTP_PROXY")
-        https_proxy = os.environ.get("https_proxy") or os.environ.get("HTTPS_PROXY")
-        if http_proxy:
-            proxies["http"] = http_proxy
-        if https_proxy:
-            proxies["https"] = https_proxy
-        if proxies:
-            logger.info(f"使用系统代理: {proxies}")
+        if platform.system() == "Linux" and os.getuid() == 0:
+            choice = "n"
+            if auto_install == False:
+                logger.info("已经以 root 用户运行，是否自动安装 FFmpeg？[y/N]")
+                choice = input().strip().lower()
+            else:
+                choice = "y"
+            if choice == "y":
+                os.system("apt-get update && apt-get install -y ffmpeg")
+                return True
         else:
-            proxies = None
-
-        # 发送HEAD请求获取文件总大小
-        head_response = requests.head(url, allow_redirects=True)
-        total_size = int(head_response.headers.get("content-length", 0))
-
-        # 发送GET请求开始下载
-        response = requests.get(url, stream=True, proxies=proxies)
-
-        # 使用tqdm创建进度条
-        with tqdm(
-            total=total_size,
-            unit="B",
-            unit_scale=True,
-            desc="下载进度",
-            bar_format="{l_bar}{bar}| {n_fmt}/{total_fmt} [{elapsed}<{remaining}, {rate_fmt}]",
-        ) as pbar:
-            with open(download_path, "wb") as f:
-                for chunk in response.iter_content(chunk_size=8192):
-                    if chunk:
-                        f.write(chunk)
-                        # 更新进度条
-                        pbar.update(len(chunk))
-    except Exception as e:
-        logger.error(f"下载 FFmpeg 失败: {str(e)}，请检查网络连接或手动下载。")
+            logger.error("FFmpeg 未找到！请以 root 用户运行以自动安装，或手动安装 FFmpeg。")
         return False
+        # url = "https://johnvansickle.com/ffmpeg/releases/ffmpeg-release-amd64-static.tar.xz"
+        # download_path = os.path.join(ffmpeg_dir, "ffmpeg.tar.xz")
 
-    try:
-        # 解压文件
-        logger.info("解压 FFmpeg...")
-        if platform.system() == "Windows":
-            # 使用 7-Zip 解压
-            try:
-                import py7zr
-
-                with py7zr.SevenZipFile(download_path, mode="r") as z:
-                    z.extractall(path=ffmpeg_dir)
-            except ImportError:
-                logger.error("请安装 py7zr 库: pip install py7zr")
-                os.remove(download_path)
-                return
-        else:
-            # 使用 tar 解压
-            import tarfile
-
-            with tarfile.open(download_path) as tar:
-                tar.extractall(path=ffmpeg_dir)
-
-        # 清理下载文件
-        os.remove(download_path)
-        logger.info("FFmpeg 安装完成！")
-
-    except Exception as e:
-        logger.error(f"解压 FFmpeg 失败: {str(e)}，请前往FFmpeg文件夹手动解压。")
-        return False
-    return True
 
 
 # 检查并安装Poppler函数
 def install_poppler(auto_install=False):
+    # Linux平台的处理
+    if platform.system() == "Linux":
+        if os.getuid() == 0:
+            choice = "n"
+            if auto_install == False:
+                logger.info("已经以 root 用户运行，是否自动安装 Poppler？[y/N]")
+                choice = input().strip().lower()
+            else:
+                choice = "y"
+            if choice == "y":
+                os.system("apt-get update && apt-get install -y poppler-utils")
+                return "/usr/bin"
+        else:
+            logger.error("Poppler 未找到！请以 root 用户运行以自动安装，或手动安装 poppler-utils。")
+        return None
+    
     poppler_dir = os.path.join(os.getcwd(), "Poppler")
     poppler_library = os.path.join(poppler_dir, "Library")
     poppler_bin = os.path.join(poppler_library, "bin")
@@ -194,20 +223,6 @@ def install_poppler(auto_install=False):
         os.environ["PATH"] = poppler_bin + os.pathsep + os.environ["PATH"]
         logger.info(f"Poppler 已找到: {poppler_bin}")
         return poppler_bin
-
-    # 非Windows平台的处理
-    if platform.system() != "Windows":
-        logger.error(
-            """
-        ########################################################
-        # 请在系统上安装 Poppler:
-        # Ubuntu/Debian: sudo apt-get install poppler-utils
-        # CentOS/RHEL: sudo yum install poppler-utils
-        # macOS: brew install poppler
-        ########################################################
-        """
-        )
-        return None
 
     # Windows平台的自动安装逻辑
     if auto_install:
