@@ -7,6 +7,8 @@ from config import config as cfg
 from config.config import logger
 
 if __name__ == "__main__":
+    isCheck = True
+
     parser = argparse.ArgumentParser(description='Flask Application')
     parser.add_argument('--auto-install', action='store_true', 
                        help='自动安装 FFmpeg 和 Poppler')
@@ -33,6 +35,7 @@ if __name__ == "__main__":
             ########################################################
             """
         )
+        isCheck = False
     else:
         logger.info(f"FFmpeg 路径配置成功: {Const.FFMPEG_PATH}")
 
@@ -48,9 +51,19 @@ if __name__ == "__main__":
             ########################################################
             """
         )
+        isCheck = False
     else:
         # 设置pdf2image使用的poppler路径
         from pdf2image import pdf2image
 
         pdf2image.poppler_path = poppler_path
         logger.info(f"已设置 Poppler 路径: {poppler_path}")
+    if isCheck:
+        logger.info("FFmpeg 和 Poppler 均已正确配置！")
+        logger.info("请使用以下代码启动应用：")
+        logger.info("    gunicorn -w 4 -b 0.0.0.0:PORT app:app")
+    else:
+        logger.warning("FFmpeg 或 Poppler 配置有误，某些功能可能无法使用！")
+        if not args.auto_install:
+            logger.info("如果你想要自动安装 FFmpeg 和 Poppler，请使用 --auto-install 参数。")
+
