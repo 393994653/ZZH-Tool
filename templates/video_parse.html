@@ -29,40 +29,6 @@
                 <span>{{ user_info.username }}</span>
                 <i class="fas fa-chevron-down"></i>
               </div>
-
-              <div class="dropdown-menu" id="dropdownMenu">
-                <div class="dropdown-header">
-                  <div class="dropdown-avatar-text">{{ user_info.username|first|upper }}</div>
-                  <div>
-                    <h3>{{ user_info.username }}</h3>
-                    <p>{{ user_info.email }}</p>
-                  </div>
-                </div>
-
-                <div class="dropdown-divider"></div>
-
-                <a href="#" class="dropdown-item">
-                  <i class="fas fa-user"></i>
-                  <span>个人资料</span>
-                </a>
-
-                <a href="#" class="dropdown-item">
-                  <i class="fas fa-cog"></i>
-                  <span>账户设置</span>
-                </a>
-
-                <a href="#" class="dropdown-item">
-                  <i class="fas fa-shield-alt"></i>
-                  <span>安全设置</span>
-                </a>
-
-                <div class="dropdown-divider"></div>
-
-                <a href="/logout" class="dropdown-item logout">
-                  <i class="fas fa-sign-out-alt"></i>
-                  <span>退出登录</span>
-                </a>
-              </div>
             </div>
           </div>
         </div>

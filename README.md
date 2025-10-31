@@ -38,5 +38,5 @@ source .venv/bin/activate  # Linux/macOS
 ```bash
 pip install -r requirements.txt
 python check.py --auto-install
-gunicorn -w 4 -b 0.0.0.0:39399 app:app  # 默认端口39399
+gunicorn -w 4 -b 0.0.0.0:39399 --worker-class eventlet app:app  # 默认端口39399
 ```
