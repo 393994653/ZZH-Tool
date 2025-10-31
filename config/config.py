@@ -103,7 +103,7 @@ def download_and_extract_ffmpeg(auto_install=False):
     # 如果 FFmpeg 已存在，则跳过
     if os.path.exists(os.path.join(ffmpeg_dir, "bin", "ffmpeg.exe")):
         return True
-    if os.path.exists("/usr/bin/ffmpeg"):
+    if shutil.which("ffmpeg") and shutil.which("ffprobe"):
         return True
 
     os.makedirs(ffmpeg_dir, exist_ok=True)
@@ -191,7 +191,9 @@ def download_and_extract_ffmpeg(auto_install=False):
 def install_poppler(auto_install=False):
     # Linux平台的处理
     if platform.system() == "Linux":
-        return None
+        if shutil.which("pdftoppm"):
+            logger.info("Poppler 已安装在系统中。")
+            return "pdftoppm"
     
     poppler_dir = os.path.join(os.getcwd(), "Poppler")
     poppler_library = os.path.join(poppler_dir, "Library")

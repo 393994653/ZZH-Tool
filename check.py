@@ -88,6 +88,6 @@ if __name__ == "__main__":
         logger.info("    gunicorn -w 4 -b 0.0.0.0:PORT app:app")
     else:
         logger.warning("FFmpeg 或 Poppler 配置有误，某些功能可能无法使用！")
-        if not args.auto_install:
+        if not args.auto_install and platform.system() == "Windows":
             logger.info("如果你想要自动安装 FFmpeg 和 Poppler，请使用 --auto-install 参数。")
 
