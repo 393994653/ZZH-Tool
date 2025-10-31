@@ -80,6 +80,12 @@ def configure_ffmpeg(auto_install = False):
         if download_and_extract_ffmpeg(auto_install) == False:
             return None, None
 
+    if platform.system() == "Linux":
+        if os.path.exists("/usr/bin/ffmpeg") and os.path.exists("/usr/bin/ffprobe"):
+            ffmpeg_path = "/usr/bin/ffmpeg"
+            ffprobe_path = "/usr/bin/ffprobe"
+
+
     # 在 Windows 上添加执行权限
     if platform.system() == "Windows":
         try:
@@ -99,6 +105,8 @@ def download_and_extract_ffmpeg(auto_install=False):
 
     # 如果 FFmpeg 已存在，则跳过
     if os.path.exists(os.path.join(ffmpeg_dir, "bin", "ffmpeg.exe")):
+        return
+    if os.path.exists("/usr/bin/ffmpeg"):
         return
 
     os.makedirs(ffmpeg_dir, exist_ok=True)
@@ -176,18 +184,6 @@ def download_and_extract_ffmpeg(auto_install=False):
             return False
         return True
     else:  # Linux/macOS
-        if platform.system() == "Linux" and os.getuid() == 0:
-            choice = "n"
-            if auto_install == False:
-                logger.info("已经以 root 用户运行，是否自动安装 FFmpeg？[y/N]")
-                choice = input().strip().lower()
-            else:
-                choice = "y"
-            if choice == "y":
-                os.system("apt-get update && apt-get install -y ffmpeg")
-                return True
-        else:
-            logger.error("FFmpeg 未找到！请以 root 用户运行以自动安装，或手动安装 FFmpeg。")
         return False
         # url = "https://johnvansickle.com/ffmpeg/releases/ffmpeg-release-amd64-static.tar.xz"
         # download_path = os.path.join(ffmpeg_dir, "ffmpeg.tar.xz")
@@ -198,18 +194,6 @@ def download_and_extract_ffmpeg(auto_install=False):
 def install_poppler(auto_install=False):
     # Linux平台的处理
     if platform.system() == "Linux":
-        if os.getuid() == 0:
-            choice = "n"
-            if auto_install == False:
-                logger.info("已经以 root 用户运行，是否自动安装 Poppler？[y/N]")
-                choice = input().strip().lower()
-            else:
-                choice = "y"
-            if choice == "y":
-                os.system("apt-get update && apt-get install -y poppler-utils")
-                return "/usr/bin"
-        else:
-            logger.error("Poppler 未找到！请以 root 用户运行以自动安装，或手动安装 poppler-utils。")
         return None
     
     poppler_dir = os.path.join(os.getcwd(), "Poppler")
