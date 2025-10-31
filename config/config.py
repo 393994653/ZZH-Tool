@@ -75,16 +75,13 @@ def configure_ffmpeg(auto_install = False):
     ffprobe_path = os.path.join(ffmpeg_dir, ffprobe_exe)
 
     # 检查文件是否存在
-    if not os.path.exists(ffmpeg_path):
-        logger.error(f"FFmpeg 未找到: {ffmpeg_path}")
-        if download_and_extract_ffmpeg(auto_install) == False:
-            return None, None
+    if download_and_extract_ffmpeg(auto_install) == False:
+        return None, None
 
     if platform.system() == "Linux":
         if os.path.exists("/usr/bin/ffmpeg") and os.path.exists("/usr/bin/ffprobe"):
             ffmpeg_path = "/usr/bin/ffmpeg"
             ffprobe_path = "/usr/bin/ffprobe"
-
 
     # 在 Windows 上添加执行权限
     if platform.system() == "Windows":
@@ -105,9 +102,9 @@ def download_and_extract_ffmpeg(auto_install=False):
 
     # 如果 FFmpeg 已存在，则跳过
     if os.path.exists(os.path.join(ffmpeg_dir, "bin", "ffmpeg.exe")):
-        return
+        return True
     if os.path.exists("/usr/bin/ffmpeg"):
-        return
+        return True
 
     os.makedirs(ffmpeg_dir, exist_ok=True)
 
