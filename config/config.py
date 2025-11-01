@@ -13,7 +13,6 @@ from colorlog import ColoredFormatter
 
 logger = logging.getLogger("ZZH-Tool")  # 获取根logger
 
-
 def init():
     global logger
 

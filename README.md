@@ -37,6 +37,5 @@ source .venv/bin/activate  # Linux/macOS
 ### 3.安装依赖并启动服务
 ```bash
 pip install -r requirements.txt
-python check.py --auto-install
 gunicorn -w 4 -b 0.0.0.0:39399 --worker-class eventlet app:app  # 默认端口39399
 ```
