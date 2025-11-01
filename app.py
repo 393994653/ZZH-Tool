@@ -14,6 +14,7 @@ from flask import (
 from flask_socketio import SocketIO, emit, join_room
 import os, json
 from datetime import datetime
+import requests
 from werkzeug.utils import secure_filename
 import yt_dlp
 import logging
@@ -32,6 +33,11 @@ from config.config import Config
 import config.config as cfg
 from config.config import logger
 from config.const import *
+try:
+    from config.personal import PersonalConfig as PC
+except ImportError:
+    logger.warning("未找到 personal.py，某些功能可能无法使用。请确保已创建该文件。")
+    PC = None
 
 # 创建Flask应用
 app = Flask(__name__)
@@ -907,6 +913,50 @@ def file_converter():
         version=Const.VERSION,
         developer=Const.AUTHOR,
     )
+
+
+# 天气状况API配置
+@app.route('/api/weather', methods=['POST'])
+def api_weather():
+    """天气API接口"""
+    try:
+        data = request.get_json()
+        
+        if not data:
+            return jsonify({'code': 400, 'error': '请求数据为空'})
+        
+        latitude = data.get('latitude')
+        longitude = data.get('longitude')
+        
+        # 验证参数
+        if latitude is None or longitude is None:
+            return jsonify({'code': 400, 'error': '缺少经纬度参数'})
+        
+        try:
+            latitude = float(latitude)
+            longitude = float(longitude)
+        except (ValueError, TypeError):
+            return jsonify({'code': 400, 'error': '经纬度参数格式错误'})
+        
+        if not (-90 <= latitude <= 90) or not (-180 <= longitude <= 180):
+            return jsonify({'code': 400, 'error': '经纬度参数范围无效'})
+        
+        # 检查配置
+        if PC.ID == "" or PC.KEY == "":
+            return jsonify({
+                'code': 500, 
+                'error': '服务器配置错误: 请配置正确的API ID和KEY'
+            })
+        
+        # 获取天气信息
+        weather_data = cfg.get_weather_by_coords(latitude, longitude)
+        return jsonify(weather_data)
+        
+    except Exception as e:
+        print(f"API处理错误: {e}")
+        return jsonify({'code': 500, 'error': '服务器内部错误'})
+
+
 
 initialize()
 if __name__ == "__main__":

@@ -196,3 +196,12 @@ body {
     padding: 6px;
   }
 }
+
+/* 如果需要在深色/浅色模式下调整天气图标的颜色，可以在这里添加特定样式 */
+[data-theme="dark"] .weather-icon {
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+}
+
+[data-theme="light"] .weather-icon {
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+}

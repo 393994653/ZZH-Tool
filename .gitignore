@@ -10,3 +10,5 @@ key.cf
 *.log
 *.db
 *.pyc
+
+config/personal.py

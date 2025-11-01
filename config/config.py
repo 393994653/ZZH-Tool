@@ -1,4 +1,5 @@
 from datetime import datetime
+import json
 import os
 import secrets
 import platform
@@ -9,6 +10,9 @@ from tqdm import tqdm
 import zipfile
 import requests
 from colorlog import ColoredFormatter
+
+from config.const import Const
+from config.personal import PersonalConfig as PC
 
 
 logger = logging.getLogger("ZZH-Tool")  # 获取根logger
@@ -267,3 +271,94 @@ def install_poppler(auto_install=False):
                 pass
 
     return None
+
+
+
+WEATHER_API_URL = Const.WEATHER_URL
+WEATHER_ICONS = {
+    "晴": "sunny",
+    "多云": "cloudy",
+    "阴": "overcast",
+    "小雨": "light-rain",
+    "中雨": "moderate-rain",
+    "大雨": "heavy-rain",
+    "暴雨": "storm",
+    "雷阵雨": "thunderstorm",
+    "雪": "snow",
+    "雾": "fog",
+    "霾": "haze"
+}
+
+def get_weather_icon(weather_description):
+    """
+    根据天气描述获取对应的图标名称
+    
+    Args:
+        weather_description (str): 天气描述
+    
+    Returns:
+        str: 图标名称
+    """
+
+    if "晴" in weather_description:
+        return "sunny"
+    elif "多云" in weather_description:
+        return "cloudy"
+    elif "阴" in weather_description:
+        return "overcast"
+    elif "小雨" in weather_description:
+        return "light-rain"
+    elif "中雨" in weather_description:
+        return "moderate-rain"
+    elif "大雨" in weather_description or "暴雨" in weather_description:
+        return "heavy-rain"
+    elif "雷" in weather_description:
+        return "thunderstorm"
+    elif "雪" in weather_description:
+        return "snow"
+    elif "雾" in weather_description:
+        return "fog"
+    elif "霾" in weather_description:
+        return "haze"
+    else:
+        return "default"  # 默认图标
+
+def get_weather_by_coords(latitude, longitude):
+    """
+    根据经纬度获取天气信息
+    
+    Args:
+        latitude (float): 纬度
+        longitude (float): 经度
+    
+    Returns:
+        dict: 天气数据
+    """
+    try:
+        params = {
+            'id': PC.ID,
+            'key': PC.KEY,
+            'lon': longitude,  # 经度
+            'lat': latitude  # 纬度
+        }
+        
+        # 发送请求到天气API
+        response = requests.get(WEATHER_API_URL, params=params, timeout=10)
+        response.raise_for_status()
+        
+        weather_data = response.json()
+        
+        # 添加图标信息
+        if weather_data.get('code') == 200:
+            weather_desc = weather_data.get('weather1', '')
+            weather_data['icon'] = get_weather_icon(weather_desc)
+        
+        return weather_data
+        
+    except requests.exceptions.RequestException as e:
+        print(f"天气API请求失败: {e}")
+        return {'code': 500, 'msg': '天气服务暂时不可用'}
+    except Exception as e:
+        print(f"获取天气信息时出错: {e}")
+        return {'code': 500, 'msg': '获取天气信息失败'}
+
