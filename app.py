@@ -62,8 +62,13 @@ DEFAULT_USER_INFO = {
     "login_time": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 }
 
-@app.before_first_request
+first_run = True
+@app.before_request
 def create_app():
+    global first_run, isCheck
+    if first_run == False:
+        return 
+    first_run = False
     cfg.init()
     isCheck = True
     auto_install = True
