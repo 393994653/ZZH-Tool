@@ -48,6 +48,9 @@ app.config["ALLOWED_EXTENSIONS"] = {
     "docx",
 }
 
+from werkzeug.middleware.proxy_fix import ProxyFix
+app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1)
+
 # 确保上传文件夹存在
 os.makedirs(app.config["UPLOAD_FOLDER"], exist_ok=True)
 
