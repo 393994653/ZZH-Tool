@@ -62,6 +62,7 @@ DEFAULT_USER_INFO = {
     "login_time": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 }
 
+@app.before_first_request
 def create_app():
     cfg.init()
     isCheck = True
