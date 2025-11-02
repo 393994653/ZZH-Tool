@@ -144,8 +144,7 @@ def initialize():
         logger.info(f"已设置 Poppler 路径: {poppler_path}")
     if isCheck:
         logger.info("FFmpeg 和 Poppler 均已正确配置！")
-        logger.info("请使用以下代码启动应用：")
-        logger.info("    gunicorn -w 4 -b 0.0.0.0:PORT --worker-class eventlet app:app")
+        logger.info("请使用以下代码启动应用：\n\t\tgunicorn -w 4 -b 0.0.0.0:PORT --worker-class eventlet app:app")
     else:
         logger.warning("FFmpeg 或 Poppler 配置有误，某些功能可能无法使用！")
         if not auto_install and platform.system() == "Windows":
@@ -963,4 +962,5 @@ def api_weather():
 
 initialize()
 if __name__ == "__main__":
+    logger.info(f"Running on http://127.0.0.1:{Const.PORT}")
     socketio.run(app, debug=Const.DEBUG, port=Const.PORT)

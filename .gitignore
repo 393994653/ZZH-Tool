@@ -5,6 +5,7 @@ logs/
 FFmpeg/
 config/__pycache__/
 Poppler/
+__pycache__/
 
 key.cf
 *.log
