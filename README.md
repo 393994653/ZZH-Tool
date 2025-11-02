@@ -34,7 +34,25 @@ source .venv/bin/activate  # Linux/macOS
 .\.venv\Scripts\activate   # Windows
 ```
 
-### 3.安装依赖并启动服务
+### 3.添加./config/personal.py
+```python
+class PersonalConfig:
+    # 和风天气 API 密钥及项目ID、KEY_ID
+    # API 文档：https://dev.qweather.com/docs/api/weather/weather-now/
+    private_key = """
+    -----BEGIN PRIVATE KEY-----
+    YOUR_PRIVATE_KEY
+    -----END PRIVATE KEY-----
+    """
+    PROJECT_ID = "YOUR_PROJECT_ID"
+    KEY_ID = "YOUR_KEY_ID"
+
+    # 百度地图 API 密钥
+    # API 文档：https://lbsyun.baidu.com/index.php?title=webapi/guide/webservice-geocoding-abroad-base
+    AK_BAIDU_MAP = "YOUR_AK"
+```
+
+### 4.安装依赖并启动服务
 ```bash
 pip install -r requirements.txt
 gunicorn -w 4 -b 0.0.0.0:39399 --worker-class eventlet app:app  # 默认端口39399
