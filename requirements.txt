@@ -91,3 +91,4 @@ yarg==0.1.9
 yt-dlp==2025.6.9
 gunicorn==23.0.0
 eventlet==0.40.3
+PyJWT==2.10.1

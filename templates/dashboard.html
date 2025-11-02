@@ -6,6 +6,7 @@
 
 {% block styles %}
 <link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}" />
+<link href="https://cdn.jsdelivr.net/npm/qweather-icons@1.8.0/font/qweather-icons.css" rel="stylesheet">
 {% endblock %}
 
 {% block content %}
@@ -153,9 +154,24 @@
                 <span id="weatherWind">-- m/s</span>
               </div>
               <div class="weather-detail">
+                <i class="fas fa-location-arrow"></i>
+                <span>风向</span>
+                <span id="weatherWindDirection">--</span>
+              </div>
+              <div class="weather-detail">
                 <i class="fas fa-temperature-low"></i>
                 <span>体感</span>
                 <span id="weatherFeelsLike">--°C</span>
+              </div>
+              <div class="weather-detail">
+                <i class="fas fa-cloud-rain"></i>
+                <span>降水量</span>
+                <span id="weatherPrecipitation">--mm</span>
+              </div>
+              <div class="weather-detail">
+                <i class="fas fa-tachometer-alt"></i>
+                <span>气压</span>
+                <span id="weatherPressure">--hPa</span>
               </div>
             </div>
           </div>

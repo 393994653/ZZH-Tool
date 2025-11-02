@@ -213,8 +213,6 @@ function getWeatherData() {
 }
 
 async function fetchWeatherData(latitude, longitude) {
-    // 这里可以使用你之前实现的天气API
-    // 由于你之前使用的是经纬度API，这里假设有一个 /api/weather 端点
     const response = await fetch('/api/weather', {
         method: 'POST',
         headers: {
@@ -238,20 +236,54 @@ function updateWeatherDisplay(data) {
     const mainEl = document.getElementById('weatherMain');
     const errorEl = document.getElementById('weatherError');
     
-    if (data.code !== 200) {
-        showWeatherError('天气数据获取失败');
+    if (data.code !== 200 && data.code !== '200') {
+        showWeatherError('天气数据获取失败：' + (data.msg || '未知错误'));
         return;
     }
+
+    const elements = {
+        location: document.getElementById('weatherLocation'),
+        temperature: document.getElementById('weatherTemperature'),
+        description: document.getElementById('weatherDescription'),
+        humidity: document.getElementById('weatherHumidity'),
+        wind: document.getElementById('weatherWind'),
+        feelsLike: document.getElementById('weatherFeelsLike'),
+        windDirection: document.getElementById('weatherWindDirection'),
+        windScale: document.getElementById('weatherWindScale'),
+        precipitation: document.getElementById('weatherPrecipitation'),
+        pressure: document.getElementById('weatherPressure'),
+        icon: document.getElementById('weatherIcon'),
+        time: document.getElementById('weatherTime')
+    };
     
-    // 更新天气信息
-    document.getElementById('weatherLocation').textContent = data.place || '未知位置';
-    document.getElementById('weatherTemperature').textContent = data.temperature || '--';
-    document.getElementById('weatherDescription').textContent = 
-        `${data.weather1 || ''}${data.weather2 ? ' 转 ' + data.weather2 : ''}`;
-    document.getElementById('weatherHumidity').textContent = `${data.humidity || '--'}%`;
-    document.getElementById('weatherWind').textContent = `${data.windSpeed || '--'} m/s`;
-    document.getElementById('weatherFeelsLike').textContent = `${data.feels_like || data.temperature || '--'}°C`;
+    // 安全更新天气信息
+    if (elements.location) elements.location.textContent = data.location || '未知位置';
+    if (elements.temperature) elements.temperature.textContent = data.temp || '--';
+    if (elements.description) elements.description.textContent = data.text || '--';
+    if (elements.humidity) elements.humidity.textContent = `${data.humidity || '--'}%`;
+    if (elements.wind) elements.wind.textContent = `${data.windSpeed || '--'} m/s`;
     
+    // 修复体感温度字段
+    if (elements.feelsLike) {
+        elements.feelsLike.textContent = `${data.feel || data.temp || '--'}°C`;
+    }
+    
+    // 更新其他字段（只在元素存在时）
+    if (elements.windDirection) elements.windDirection.textContent = data.windDir || '--';
+    if (elements.windScale) elements.windScale.textContent = data.windScale || '--';
+    if (elements.precipitation) elements.precipitation.textContent = `${data.precip || '0.0'} mm`;
+    if (elements.pressure) elements.pressure.textContent = `${data.pressure || '--'} hPa`;
+    
+
+    if (data.icon) {
+        const weatherIcon = document.getElementById('weatherIcon');
+        if (weatherIcon) {
+            // 根据图标代码设置对应的图标
+            // weatherIcon.className = `weather-icon wi-${getWeatherIconCode(data.icon)}`;
+            weatherIcon.src = `/static/QWeather/${data.icon}.svg`;
+        }
+    }
+
     // 更新时间
     const now = new Date();
     document.getElementById('weatherTime').textContent = now.toLocaleTimeString('zh-CN', { 

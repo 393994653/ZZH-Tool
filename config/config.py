@@ -14,6 +14,9 @@ from colorlog import ColoredFormatter
 from config.const import Const
 from config.personal import PersonalConfig as PC
 
+import time
+import jwt
+
 
 logger = logging.getLogger("ZZH-Tool")  # 获取根logger
 
@@ -335,25 +338,38 @@ def get_weather_by_coords(latitude, longitude):
         dict: 天气数据
     """
     try:
+        token = generate_token()
+        headers = {
+            'Authorization': f'Bearer {token}',
+            'Accept-Encoding': 'gzip, deflate, br'  # 支持压缩
+        }
         params = {
-            'id': PC.ID,
-            'key': PC.KEY,
-            'lon': longitude,  # 经度
-            'lat': latitude  # 纬度
+            'location': f"{str(round(longitude, 2))},{str(round(latitude, 2))}"
         }
         
         # 发送请求到天气API
-        response = requests.get(WEATHER_API_URL, params=params, timeout=10)
+        response = requests.get(WEATHER_API_URL, headers=headers, params=params)
         response.raise_for_status()
         
         weather_data = response.json()
         
-        # 添加图标信息
-        if weather_data.get('code') == 200:
-            weather_desc = weather_data.get('weather1', '')
-            weather_data['icon'] = get_weather_icon(weather_desc)
-        
-        return weather_data
+        res_data = {
+            "code": weather_data["code"],
+            "location": get_location(latitude, longitude),
+            "time": weather_data["updateTime"],
+            "temp": weather_data["now"]["temp"],
+            "feel": weather_data["now"]["feelsLike"],
+            "icon": weather_data["now"]["icon"],
+            "text": weather_data["now"]["text"],
+            "windDir": weather_data["now"]["windDir"],
+            "windScale": weather_data["now"]["windScale"],
+            "windSpeed": weather_data["now"]["windSpeed"],
+            "humidity": weather_data["now"]["humidity"],
+            "precip": weather_data["now"]["precip"],
+            "pressure": weather_data["now"]["pressure"]
+        }
+
+        return res_data
         
     except requests.exceptions.RequestException as e:
         print(f"天气API请求失败: {e}")
@@ -362,3 +378,72 @@ def get_weather_by_coords(latitude, longitude):
         print(f"获取天气信息时出错: {e}")
         return {'code': 500, 'msg': '获取天气信息失败'}
 
+def generate_token():
+    """
+    JWT生成函数
+    """
+    private_key = PC.private_key
+    
+    payload = {
+        'iat': int(time.time()) - 30,
+        'exp': int(time.time()) + 900,
+        'sub': PC.PROJECT_ID
+    }
+    headers = {
+        'kid': PC.KEY_ID
+    }
+    
+    try:
+        # Generate JWT
+        encoded_jwt = jwt.encode(payload, private_key, algorithm='EdDSA', headers = headers)
+        return encoded_jwt
+    except Exception as e:
+        logger.error(f"PyJWT方法失败: {e}")
+    
+    raise RuntimeError("无法生成JWT token")
+
+def get_location(latitude, longitude):
+    """
+    根据经纬度获取位置名称
+    
+    Args:
+        latitude (float): 纬度
+        longitude (float): 经度
+    
+    Returns:
+        str: 位置名称
+    """
+    try:
+        url = Const.LOCATION_URL
+        params = {
+            'ak': PC.AK_BAIDU_MAP,
+            'location': f"{latitude},{longitude}",
+            'output': 'json',
+            'extensions_poi': '1',
+        }
+        response = requests.get(url, params=params)
+        response.raise_for_status()
+        data = response.json()
+
+        if data["status"] != 0:
+            logger.error(f"百度地图API错误，状态码: {data['status']}")
+            return f"{latitude}, {longitude}"
+
+        res_data = {
+            "code": 200,
+            "country": data["result"]["addressComponent"]["country"],
+            "province": data["result"]["addressComponent"]["province"],
+            "city": data["result"]["addressComponent"]["city"],
+            "district": data["result"]["addressComponent"]["district"],
+            "town": data["result"]["addressComponent"].get("town", ""),
+            "street": data["result"]["addressComponent"].get("street", ""),
+            "formatted_address": data["result"]["formatted_address"],
+            "formatted_address_poi": data["result"]["formatted_address_poi"] + "（" + data["result"]["sematic_description"] + "）"
+        }
+        logger.info(f"位置：{res_data['formatted_address_poi']}")
+        location = res_data['province'] + res_data['city'] + res_data['district']
+        return location
+
+    except Exception as e:
+        logger.error(f"获取位置名称时出错: {e}")
+        return f"{latitude}, {longitude}"

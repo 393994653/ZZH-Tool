@@ -923,29 +923,32 @@ def api_weather():
         data = request.get_json()
         
         if not data:
-            return jsonify({'code': 400, 'error': '请求数据为空'})
+            return jsonify({'code': 400, 'msg': '请求数据为空'})
         
-        latitude = data.get('latitude')
-        longitude = data.get('longitude')
+        latitude = data.get('latitude')  # 纬度
+        longitude = data.get('longitude')  # 经度
+
+        # 显示经纬度
+        logger.info(f"经纬度： {latitude}, {longitude}")
         
         # 验证参数
         if latitude is None or longitude is None:
-            return jsonify({'code': 400, 'error': '缺少经纬度参数'})
+            return jsonify({'code': 400, 'msg': '缺少经纬度参数'})
         
         try:
             latitude = float(latitude)
             longitude = float(longitude)
         except (ValueError, TypeError):
-            return jsonify({'code': 400, 'error': '经纬度参数格式错误'})
+            return jsonify({'code': 400, 'msg': '经纬度参数格式错误'})
         
         if not (-90 <= latitude <= 90) or not (-180 <= longitude <= 180):
-            return jsonify({'code': 400, 'error': '经纬度参数范围无效'})
+            return jsonify({'code': 400, 'msg': '经纬度参数范围无效'})
         
         # 检查配置
-        if PC.ID == "" or PC.KEY == "":
+        if PC.private_key == "":
             return jsonify({
                 'code': 500, 
-                'error': '服务器配置错误: 请配置正确的API ID和KEY'
+                'msg': '服务器配置错误: 请配置正确的 key'
             })
         
         # 获取天气信息
@@ -954,7 +957,7 @@ def api_weather():
         
     except Exception as e:
         print(f"API处理错误: {e}")
-        return jsonify({'code': 500, 'error': '服务器内部错误'})
+        return jsonify({'code': 500, 'msg': '服务器内部错误'})
 
 
 
