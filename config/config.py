@@ -35,7 +35,7 @@ def init():
 
     # 创建文件处理器
     file_handler = logging.FileHandler(
-        f"logs/{ (str(datetime.now().strftime("%Y%m%d%H%M%S"))) }.log", encoding="utf-8"
+        f"logs/{ (str(datetime.now().strftime('%Y%m%d%H%M%S'))) }.log", encoding="utf-8"
     )
     file_handler.setLevel(logging.DEBUG)  # 文件记录所有级别
 
