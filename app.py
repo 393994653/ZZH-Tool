@@ -927,6 +927,12 @@ def api_weather():
         latitude = data.get('latitude')  # 纬度
         longitude = data.get('longitude')  # 经度
 
+        if request.headers.get('X-Forwarded-For'):
+            ipaddr = request.headers.get('X-Forwarded-For')
+        else:
+            ipaddr = request.remote_addr
+        logger.info(f"访问IP：{ipaddr}")
+
         # 显示经纬度
         logger.info(f"经纬度： {latitude}, {longitude}")
         
